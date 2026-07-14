@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Search, Menu, X } from "lucide-react";
+import { Logo } from "@/components/ui";
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const links = [
@@ -12,12 +14,8 @@ export default function Navbar() {
   return (
     <nav className="w-full relative z-50 border-b border-white/[0.02] bg-black/10 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-5 flex items-center justify-between">
-        <Link
-          to="/"
-          className="flex items-center space-x-1 font-bold tracking-tight text-sm text-white"
-          onClick={() => setIsOpen(false)}
-        >
-          DevSphere<span className="text-gray-400 font-light">*</span>
+        <Link to="/" className="pointer-events-auto">
+          <Logo className="h-5 w-5" showText={true} />
         </Link>
 
         <div className="hidden md:flex items-center space-x-8 lg:space-x-10 text-[11px] tracking-widest font-medium text-gray-400">

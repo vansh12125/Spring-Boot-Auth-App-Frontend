@@ -1,5 +1,5 @@
-import { React, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { React, useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuthPageScene3D } from "@/components/three";
 import { CircleX, SaveCheck } from "lucide-react";
@@ -11,11 +11,22 @@ import {
 
 export default function Login() {
   const [username, setUsername] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error != null) {
+      setErrors({
+        response:
+          "This email is already registered. Please sign in with your password first.",
+      });
+    }
+  }, []);
 
   const validateForm = (username, password) => {
     const errors = {};
@@ -76,9 +87,9 @@ export default function Login() {
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);
-    } catch (error) { 
+    } catch (error) {
       setErrors({
-        response: error.response?.data?.message
+        response: error.response?.data?.message,
       });
     }
   };
