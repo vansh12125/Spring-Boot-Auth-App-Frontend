@@ -1,4 +1,4 @@
-import { Login, Register } from "@/pages/auth";
+import { Login, Register,OAuthSuccess } from "@/pages/auth";
 
 export const authRoutes = [
   {
@@ -8,5 +8,9 @@ export const authRoutes = [
   {
     path: "signup",
     element: <Register />,
+  },
+  {
+    path: "oauth/success",
+    element: <OAuthSuccess />,
   },
 ];

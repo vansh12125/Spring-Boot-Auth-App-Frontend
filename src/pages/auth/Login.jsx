@@ -1,13 +1,21 @@
 import { React, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuthPageScene3D } from "@/components/three";
+import { CircleX, SaveCheck } from "lucide-react";
+import {
+  LoginUserByGoogle,
+  LoginUserByGithub,
+  LoginUserByUsername,
+} from "@/service/AuthService";
+
 export default function Login() {
-  const [userData, setUserData] = useState({});
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const validateForm = (username, password) => {
     const errors = {};
@@ -38,9 +46,17 @@ export default function Login() {
     };
   };
 
-  const handleSubmit = (e) => {
+  const clearFields = () => {
+    setErrors({});
+    setPassword("");
+    setUsername("");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
+    setSuccess(false);
+
     const { isValid, errors } = validateForm(username, password);
     if (!isValid) {
       setErrors(errors);
@@ -48,12 +64,30 @@ export default function Login() {
     }
 
     const data = {
-      "username": username,
-      "password": password,
-      "rememberMe": rememberMe,
+      username,
+      password,
+      rememberMe,
     };
-    setUserData(data);
-    console.log(data);
+
+    try {
+      const response = await LoginUserByUsername(data);
+      setSuccess(true);
+      clearFields();
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } catch (error) { 
+      setErrors({
+        response: error.response?.data?.message
+      });
+    }
+  };
+
+  const continueByGoogle = () => {
+    LoginUserByGoogle();
+  };
+  const continueByGithub = () => {
+    LoginUserByGithub();
   };
 
   return (
@@ -91,7 +125,7 @@ export default function Login() {
                 id="login-identity"
                 autoComplete="username"
                 className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono"
-                placeholder="identity@devsphere.io or u/handle"
+                placeholder="u/handle"
                 required
                 value={username}
                 onChange={(e) => {
@@ -152,6 +186,17 @@ export default function Login() {
               </label>
             </div>
 
+            {errors.response && (
+              <div className="text-red-500 text-l text-center flex justify-center items-center gap-2">
+                <CircleX size={20} /> {errors.response}
+              </div>
+            )}
+
+            {success && (
+              <div className="text-green-500 text-l text-center flex justify-center items-center gap-2">
+                <SaveCheck size={20} /> Login Successfully...
+              </div>
+            )}
             <button
               type="submit"
               className="w-full py-2.5 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors tracking-wide mt-2 shadow-lg"
@@ -170,9 +215,13 @@ export default function Login() {
               </span>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200">
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <button
+              className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
+              onClick={() => {
+                continueByGoogle();
+              }}
+            >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -197,7 +246,12 @@ export default function Login() {
               </svg>
               <span>Google</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200">
+            <button
+              className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
+              onClick={() => {
+                continueByGithub();
+              }}
+            >
               <svg
                 className="w-3.5 h-3.5"
                 viewBox="0 0 24 24"

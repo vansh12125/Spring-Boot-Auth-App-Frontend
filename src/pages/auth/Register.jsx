@@ -1,14 +1,22 @@
 import { React, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuthPageScene3D } from "@/components/three";
+import {
+  RegisterUserByUsername,
+  LoginUserByGoogle,
+  LoginUserByGithub,
+} from "@/service";
+import { CircleX, SaveCheck } from "lucide-react";
+
 export default function Register() {
-  const [userData, setUserData] = useState({});
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const validateForm = (fullName, email, username, password) => {
     const errors = {};
@@ -61,7 +69,7 @@ export default function Register() {
     };
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
     const { isValid, errors } = validateForm(
@@ -77,12 +85,42 @@ export default function Register() {
     const data = {
       username: username.trim().toLowerCase(),
       password: password,
-      fullName: fullName.trim(),
+      name: fullName.trim(),
       email: email,
     };
-    setUserData(data);
-    console.log(data);
+  
+    try {
+      await RegisterUserByUsername(data);
+      setSuccess(true);
+      clearFields();
+      setErrors({})
+      setTimeout(() => {
+        navigate("/signin");
+      }, 1000);
+    } catch (error) {
+      errors.response = error.response?.data?.message || "Something went wrong";
+      setErrors(errors);
+    }
+    // console.log("response:", response);
+    // console.log("data.status:", response.data.status);
+    // console.log("data:", response.data);
   };
+
+  const registerByGoogle =  () => {
+    LoginUserByGoogle();
+  };
+  const registerByGithub =  () => {
+    LoginUserByGithub();
+  };
+
+  const clearFields = () => {
+    setFullName("");
+    setEmail("");
+    setErrors({});
+    setPassword("");
+    setUsername("");
+  };
+
   return (
     <div className="relative min-h-screen w-full flex items-center justify-start overflow-hidden bg-[#050507]">
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -142,6 +180,7 @@ export default function Register() {
                 id="register-handle"
                 className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono"
                 placeholder="u/kernel_panic"
+                autoComplete="username"
                 required
                 value={username}
                 onChange={(e) => {
@@ -214,6 +253,16 @@ export default function Register() {
                 I agree to the terms and privacy guidelines.
               </label>
             </div>
+            {errors.response && (
+              <div className="text-red-500 text-l text-center flex justify-center items-center gap-2">
+                <CircleX size={20} /> {errors.response}
+              </div>
+            )}
+            {success && (
+              <div className="text-green-500 text-l text-center flex justify-center items-center gap-2">
+                <SaveCheck size={20} /> User Registered Successfully...
+              </div>
+            )}
             <button
               type="submit"
               className="w-full py-2.5 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors tracking-wide mt-2 shadow-lg"
@@ -234,7 +283,12 @@ export default function Register() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200">
+            <button
+              className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
+              onClick={() => {
+                registerByGoogle();
+              }}
+            >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -259,7 +313,12 @@ export default function Register() {
               </svg>
               <span>Google</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200">
+            <button
+              className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
+              onClick={() => {
+                registerByGithub();
+              }}
+            >
               <svg
                 className="w-3.5 h-3.5"
                 viewBox="0 0 24 24"
