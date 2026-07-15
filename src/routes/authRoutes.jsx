@@ -1,4 +1,4 @@
-import { Login, Register,OAuthSuccess } from "@/pages/auth";
+import { Login, Register, OAuthSuccess } from "@/pages/auth";
 
 export const authRoutes = [
   {
