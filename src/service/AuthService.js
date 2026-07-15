@@ -19,7 +19,7 @@ const LoginUserByUsername=async (userData) =>{
   return await apiClient.post("/auth/login",userData)
 }
 
-const Logout = async ()=>{
-  apiClient.post("/auth/logout")
+const LogoutUser = async ()=>{
+  return await apiClient.post("/auth/signout")
 }
-export { RegisterUserByUsername, LoginUserByGoogle, LoginUserByGithub,RefreshTokenRequest,LoginUserByUsername,Logout };
+export { RegisterUserByUsername, LoginUserByGoogle, LoginUserByGithub,RefreshTokenRequest,LoginUserByUsername,LogoutUser };

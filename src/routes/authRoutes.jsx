@@ -13,4 +13,5 @@ export const authRoutes = [
     path: "oauth/success",
     element: <OAuthSuccess />,
   },
+  
 ];

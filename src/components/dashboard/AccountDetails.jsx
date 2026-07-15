@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Mail, ShieldAlert,UserCheck, Fingerprint } from 'lucide-react';
+import { Shield, Mail,UserCheck, Fingerprint } from 'lucide-react';
 
 export default function AccountDetails({ user }) {
   const infoFields = [

@@ -21,7 +21,7 @@ export const axiosRequestInterceptor = (store) => {
     (config) => {
       console.log(config);
 
-      const excludedUrls = ["/auth/login", "/auth/register", "/auth/refresh"];
+      const excludedUrls = ["/auth/login", "/auth/register", "/auth/refresh","/auth/logout",];
 
       const isExcluded = excludedUrls.some((url) =>
         config.url?.startsWith(url),
@@ -86,7 +86,6 @@ export const axiosResponseInterceptor = (store) => {
       catch (refreshError) {
         processQueue(refreshError, null);
         store.dispatch(logout());
-        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
