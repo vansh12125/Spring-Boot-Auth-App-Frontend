@@ -19,8 +19,6 @@ const processQueue = (error, accessToken = null) => {
 export const axiosRequestInterceptor = (store) => {
   apiClient.interceptors.request.use(
     (config) => {
-      console.log(config);
-
       const excludedUrls = ["/auth/login", "/auth/register", "/auth/refresh","/auth/logout",];
 
       const isExcluded = excludedUrls.some((url) =>
@@ -33,7 +31,6 @@ export const axiosRequestInterceptor = (store) => {
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
-      console.log(config);
       return config;
     },
     (error) => {

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Search, Menu, X } from "lucide-react";
-import { Logo } from "@/components/ui";
+import { Logo,Avatar } from "@/components/ui";
+import { useAuth } from "@/hooks";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +13,9 @@ export default function Navbar() {
     { title: "CONTACTS", path: "/contacts" },
     { title: "FAQs", path: "/faqs" },
   ];
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
   return (
     <nav className="w-full relative z-50 border-b border-white/[0.02] bg-black/10 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-5 flex items-center justify-between">
@@ -37,12 +42,23 @@ export default function Navbar() {
             <Search className="w-3.5 h-3.5" />
             <span>SEARCH</span>
           </button>
-          <Link
-            to="/signin"
-            className="px-5 py-2 text-[11px] tracking-wide bg-white text-black font-medium rounded-md hover:bg-white/90 transition-all duration-200"
-          >
-            Sign In
-          </Link>
+
+          {isAuthenticated ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/[0.02]  border border-white/10 flex items-center justify-center text-sm font-bold text-white shadow-lg hover:scale-105 transition-all duration-200"
+              title={user.name}
+            >
+              {<Avatar/>}
+            </button>
+          ) : (
+            <Link
+              to="/signin"
+              className="px-5 py-2 text-[11px] tracking-wide bg-white text-black font-medium rounded-md hover:bg-white/90 transition-all duration-200"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
         <div className="md:hidden flex items-center space-x-4">
@@ -70,13 +86,29 @@ export default function Navbar() {
               {item.title}
             </NavLink>
           ))}
-          <Link
-            to="/signin"
-            onClick={() => setIsOpen(false)}
-            className="w-full text-center py-2.5 bg-white text-black text-xs font-semibold rounded-md"
-          >
-            Sign In
-          </Link>
+          {isAuthenticated ? (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate("/dashboard");
+              }}
+              className="w-full flex items-center justify-center gap-3 py-2.5 bg-white/5 border border-white/10 rounded-md text-white"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white/10 to-white/[0.02]  flex items-center justify-center text-xs font-bold">
+                {<Avatar/>}
+              </div>
+
+              <span className="font-medium">{user.name}</span>
+            </button>
+          ) : (
+            <Link
+              to="/signin"
+              onClick={() => setIsOpen(false)}
+              className="w-full text-center py-2.5 bg-white text-black text-xs font-semibold rounded-md"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       )}
     </nav>

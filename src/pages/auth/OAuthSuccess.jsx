@@ -4,7 +4,6 @@ import { RefreshTokenRequest } from "@/service/AuthService";
 const OAuthSuccess = () => {
   const getData = async () => {
     const respone = await RefreshTokenRequest();
-    console.log(respone);
   };
   useEffect(() => {
     getData();

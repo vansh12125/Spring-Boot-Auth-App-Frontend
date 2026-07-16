@@ -1,11 +1,8 @@
 import { useEffect } from "react";
 import { RefreshTokenRequest } from "@/service";
-import {
-  login,
-  logout,
-  finishInitialization,
-} from "@/redux";
+import { login, logout, finishInitialization } from "@/redux";
 import { useAuth } from "@/hooks";
+import { LoadingAnimation } from "@/components/ui";
 
 export default function AuthInitializer({ children }) {
   const { initialized, dispatch } = useAuth();
@@ -21,7 +18,7 @@ export default function AuthInitializer({ children }) {
           login({
             accessToken,
             user,
-          })
+          }),
         );
       } catch (error) {
         dispatch(logout());
@@ -36,7 +33,7 @@ export default function AuthInitializer({ children }) {
   if (!initialized) {
     return (
       <div className="h-screen flex items-center justify-center bg-black text-white">
-        Loading...
+        <LoadingAnimation />
       </div>
     );
   }

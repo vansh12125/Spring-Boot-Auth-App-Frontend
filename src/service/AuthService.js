@@ -1,7 +1,7 @@
 import { apiClient } from "@/config";
 
 const RegisterUserByUsername = async (userData) => {
-    return await apiClient.post(`/auth/register`, userData);
+  return await apiClient.post(`/auth/register`, userData);
 };
 
 const LoginUserByGoogle = async () => {
@@ -11,15 +11,28 @@ const LoginUserByGithub = async () => {
   window.location.href = `${import.meta.env.VITE_API_BASE_URL}oauth2/authorization/github`;
 };
 
-const RefreshTokenRequest = async()=>{
-   return await apiClient.post("/auth/refresh");
+const RefreshTokenRequest = async () => {
+  return await apiClient.post("/auth/refresh");
 };
 
-const LoginUserByUsername=async (userData) =>{
-  return await apiClient.post("/auth/login",userData)
-}
+const LoginUserByUsername = async (userData) => {
+  return await apiClient.post("/auth/login", userData);
+};
 
-const LogoutUser = async ()=>{
-  return await apiClient.post("/auth/signout")
-}
-export { RegisterUserByUsername, LoginUserByGoogle, LoginUserByGithub,RefreshTokenRequest,LoginUserByUsername,LogoutUser };
+const LogoutUser = async () => {
+  return await apiClient.post("/auth/signout");
+};
+
+const UpdateProfile = async (userData) => {
+  return await apiClient.patch("/users/profile", userData);
+};
+
+export {
+  RegisterUserByUsername,
+  LoginUserByGoogle,
+  LoginUserByGithub,
+  RefreshTokenRequest,
+  LoginUserByUsername,
+  LogoutUser,
+  UpdateProfile,
+};
