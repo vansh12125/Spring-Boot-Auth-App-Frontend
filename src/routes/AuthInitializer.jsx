@@ -2,40 +2,50 @@ import { useEffect } from "react";
 import { RefreshTokenRequest } from "@/service";
 import { login, logout, finishInitialization } from "@/redux";
 import { useAuth } from "@/hooks";
-import { LoadingAnimation } from "@/components/ui";
 
 export default function AuthInitializer({ children }) {
-  const { initialized, dispatch } = useAuth();
+  const { initialized, accessToken, dispatch } = useAuth();
 
   useEffect(() => {
+    console.log("AuthInitializer mounted");
+
     const initializeAuth = async () => {
+      console.log("initializeAuth started");
+
+      if (accessToken) {
+        console.log("Already authenticated");
+        dispatch(finishInitialization());
+        return;
+      }
+
       try {
+        console.log("Calling refresh...");
         const response = await RefreshTokenRequest();
 
-        const { accessToken, user } = response.data;
+        console.log("Refresh success", response);
 
         dispatch(
           login({
-            accessToken,
-            user,
-          }),
+            accessToken: response.data.accessToken,
+            user: response.data.user,
+          })
         );
-      } catch (error) {
+      } catch (err) {
+        console.log("Refresh failed", err);
         dispatch(logout());
       } finally {
+        console.log("Dispatching finishInitialization");
         dispatch(finishInitialization());
       }
     };
 
     initializeAuth();
-  }, [dispatch]);
+  }, [accessToken, dispatch]);
+
+  console.log("initialized =", initialized);
 
   if (!initialized) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black text-white">
-        <LoadingAnimation />
-      </div>
-    );
+    return <h1>Loading...</h1>;
   }
 
   return children;

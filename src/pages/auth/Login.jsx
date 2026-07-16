@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuthPageScene3D } from "@/components/three";
 import { CircleX, SaveCheck } from "lucide-react";
+import {useAuth} from "@/hooks"
+import {login} from "@/redux"
 import {
   LoginUserByGoogle,
   LoginUserByGithub,
@@ -10,6 +12,7 @@ import {
 } from "@/service/AuthService";
 
 export default function Login() {
+  const { dispatch } = useAuth();
   const [username, setUsername] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const [password, setPassword] = useState("");
@@ -75,13 +78,21 @@ export default function Login() {
     }
 
     const data = {
-      username,
+      username:username.toLowerCase(),
       password,
       rememberMe,
     };
 
     try {
       const response = await LoginUserByUsername(data);
+
+      dispatch(
+        login({
+          accessToken: response.data.accessToken,
+          user: response.data.user,
+        }),
+      );
+
       setSuccess(true);
       clearFields();
       setTimeout(() => {

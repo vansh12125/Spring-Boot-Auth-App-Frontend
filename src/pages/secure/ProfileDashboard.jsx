@@ -1,29 +1,23 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Grid } from "@/components/common/";
+import {FloatingNav} from "@/components/ui"
 import {
   AccountDetails,
   DeveloperMetrics,
   ProfileHeader,
   SecuritySettings,
 } from "@/components/dashboard";
-import {useNavigate} from "react-router-dom"
+import {PenSquare} from "lucide-react"
+import { useNavigate } from "react-router-dom";
 export default function ProfileDashboard() {
-  const navigate=useNavigate();
-  
-  const userProfile = {
-    name: "Vansh Sahu",
-    username: "kernel_panic",
-    email: "vansh@devsphere.io",
-    userId: "usr_dvs_99x7f25b",
-    joinedDate: "July 11, 2026",
-    nodeStatus: "Active Operational",
-    authProvider: "GitHub",
-  };
+  const navigate = useNavigate();
   return (
     <div className="relative min-h-screen w-full bg-[#050507] text-gray-300 overflow-x-hidden antialiased flex flex-col pt-24 pb-16">
       {}
+    
       <Grid />
+      <FloatingNav/>
       {}
       <div className="max-w-7xl mx-auto w-full px-6 md:px-12 relative z-10 flex-grow">
         {}
@@ -45,12 +39,12 @@ export default function ProfileDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {}
           <div className="lg:col-span-12">
-            <ProfileHeader user={userProfile} />
+            <ProfileHeader />
           </div>
           {}
           <div className="lg:col-span-7 space-y-6">
-            <AccountDetails user={userProfile} />
-            <SecuritySettings user={userProfile} />
+            <AccountDetails  />
+            <SecuritySettings  />
           </div>
           {}
           <div className="lg:col-span-5">
@@ -58,6 +52,18 @@ export default function ProfileDashboard() {
           </div>
         </div>
       </div>
+      <motion.button
+        whileHover={{
+          scale: 1.05,
+          boxShadow: "0 0 20px rgba(255, 255, 255, 0.15)",
+        }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate("/create-post")}
+        className="fixed bottom-8 right-8 z-40 flex items-center space-x-2 bg-white text-black font-semibold text-xs px-5 py-3.5 rounded-full shadow-2xl hover:bg-gray-200 transition-colors duration-200 cursor-pointer pointer-events-auto"
+      >
+        <PenSquare className="w-4 h-4" />
+        <span>Create Post</span>
+      </motion.button>
     </div>
   );
 }

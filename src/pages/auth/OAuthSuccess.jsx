@@ -1,15 +1,39 @@
-import { React, useEffect } from "react";
-import { RefreshTokenRequest } from "@/service/AuthService";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { RefreshTokenRequest } from "@/service";
+import { useAuth } from "@/hooks";
+import { login } from "@/redux";
 
-const OAuthSuccess = () => {
-  const getData = async () => {
-    const respone = await RefreshTokenRequest();
-  };
+export default function OAuthSuccess() {
+  const navigate = useNavigate();
+  const { dispatch } = useAuth();
+
   useEffect(() => {
-    getData();
-  }, []);
+    const authenticate = async () => {
+      try {
+        const response = await RefreshTokenRequest();
 
-  return <div>OAuthSuccess</div>;
-};
+        const { accessToken, user } = response.data;
 
-export default OAuthSuccess;
+        dispatch(
+          login({
+            accessToken,
+            user,
+          })
+        );
+
+        navigate("/dashboard", { replace: true });
+      } catch (error) {
+        navigate("/signin", { replace: true });
+      }
+    };
+
+    authenticate();
+  }, [dispatch, navigate]);
+
+  return (
+    <div className="h-screen flex items-center justify-center bg-black text-white">
+      Signing you in...
+    </div>
+  );
+}
