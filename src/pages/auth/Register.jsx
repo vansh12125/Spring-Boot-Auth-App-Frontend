@@ -101,9 +101,6 @@ export default function Register() {
       errors.response = error.response?.data?.message || "Something went wrong";
       setErrors(errors);
     }
-    // .log("response:", response);
-    // .log("data.status:", response.data.status);
-    // .log("data:", response.data);
   };
 
   const registerByGoogle =  () => {
