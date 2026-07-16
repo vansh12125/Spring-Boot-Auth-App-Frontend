@@ -15,7 +15,6 @@ export default function ProfileHeader() {
     try {
       await LogoutUser();
     } catch (error) {
-      console.log(error);
     } finally {
       dispatch(logout());
       navigate("/signin", { replace: true });

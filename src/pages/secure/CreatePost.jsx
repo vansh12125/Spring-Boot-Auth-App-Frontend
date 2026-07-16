@@ -62,7 +62,6 @@ export default function CreatePost() {
         userId: user.userId,
       };
       const response = await createPost(postData);
-      console.log(response.data);
       setSuccess("Post created successfully.");
       setTimeout(() => {
         navigate("/dashboard");

@@ -26,7 +26,6 @@ export default function Feeds() {
 
       setPosts(normalizedPosts);
     } catch (error) {
-      console.error("Could not fetch posts:", error);
     }
   };
   const handleLike = async (postId) => {
@@ -59,7 +58,6 @@ export default function Feeds() {
         await likePost(postId, currentUserId);
       }
     } catch (error) {
-      console.error("Like request failed:", error);
       setPosts(previousPosts);
     }
   };

@@ -7,22 +7,22 @@ export default function AuthInitializer({ children }) {
   const { initialized, accessToken, dispatch } = useAuth();
 
   useEffect(() => {
-    console.log("AuthInitializer mounted");
+    .log("AuthInitializer mounted");
 
     const initializeAuth = async () => {
-      console.log("initializeAuth started");
+      .log("initializeAuth started");
 
       if (accessToken) {
-        console.log("Already authenticated");
+        .log("Already authenticated");
         dispatch(finishInitialization());
         return;
       }
 
       try {
-        console.log("Calling refresh...");
+        .log("Calling refresh...");
         const response = await RefreshTokenRequest();
 
-        console.log("Refresh success", response);
+        .log("Refresh success", response);
 
         dispatch(
           login({
@@ -31,10 +31,10 @@ export default function AuthInitializer({ children }) {
           })
         );
       } catch (err) {
-        console.log("Refresh failed", err);
+        .log("Refresh failed", err);
         dispatch(logout());
       } finally {
-        console.log("Dispatching finishInitialization");
+        .log("Dispatching finishInitialization");
         dispatch(finishInitialization());
       }
     };
@@ -42,7 +42,7 @@ export default function AuthInitializer({ children }) {
     initializeAuth();
   }, [accessToken, dispatch]);
 
-  console.log("initialized =", initialized);
+  .log("initialized =", initialized);
 
   if (!initialized) {
     return <h1>Loading...</h1>;
