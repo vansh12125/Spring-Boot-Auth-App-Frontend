@@ -3,17 +3,14 @@ import { motion } from 'framer-motion';
 import { Shield, Mail, UserCheck, Fingerprint, CheckCircle2, HelpCircle } from 'lucide-react';
 import { useAuth } from "@/hooks";
 import { CopyToClipboard } from "@/service";
-
 export default function AccountDetails() {
   const { user } = useAuth();
-  
   const infoFields = [
     { label: "Full Name", value: user?.name, icon: UserCheck },
     { label: "Email Address", value: user?.email, icon: Mail },
     { label: "Username", value: user?.username ? `u/${user.username}` : '', icon: Shield },
     { label: "User ID", value: user?.userId, icon: Fingerprint, mono: true },
   ];
-
   return (
     <motion.div 
       initial={{ opacity: 0, y: 15 }}
@@ -27,8 +24,7 @@ export default function AccountDetails() {
             <h2 className="text-sm font-semibold text-white tracking-wide uppercase font-mono">
               Account Details
             </h2>
-            
-            {/* Small Status Badge */}
+            {}
             {user?.verified ? (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-mono uppercase tracking-wider">
                 <CheckCircle2 className="w-2.5 h-2.5" />
@@ -44,7 +40,6 @@ export default function AccountDetails() {
           <p className="text-xs text-gray-400 mt-0.5">Your verified profile information.</p>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {infoFields.map((field, idx) => {
           const IconComponent = field.icon;

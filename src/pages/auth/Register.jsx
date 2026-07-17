@@ -35,7 +35,9 @@ export default function Register() {
     const trimmedUsername = username.trim();
     if (!trimmedEmail) {
       formErrors.email = "Email is required";
-    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
+    } else if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)
+    ) {
       formErrors.email = "Please enter a valid email address";
     }
     if (!trimmedFullName) {
@@ -45,7 +47,8 @@ export default function Register() {
     } else if (trimmedFullName.length > 50) {
       formErrors.fullName = "Full name cannot exceed 50 characters";
     } else if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(trimmedFullName)) {
-      formErrors.fullName = "Full name can only contain letters and single spaces";
+      formErrors.fullName =
+        "Full name can only contain letters and single spaces";
     }
     if (!trimmedUsername) {
       formErrors.username = "Username is required";
@@ -54,7 +57,8 @@ export default function Register() {
     } else if (trimmedUsername.length > 30) {
       formErrors.username = "Username cannot exceed 30 characters";
     } else if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(trimmedUsername)) {
-      formErrors.username = "Username must start with a letter and contain only alphanumeric symbols or underscores.";
+      formErrors.username =
+        "Username must start with a letter and contain only alphanumeric symbols or underscores.";
     }
     if (!password) {
       formErrors.password = "Password is required";
@@ -75,25 +79,37 @@ export default function Register() {
       errors: formErrors,
     };
   };
-  const triggerOtpSendAPI = async (targetEmail) => {
+  const triggerOtpSendAPI = async (data) => {
     setIsSendingOtp(true);
     setOtpMessage("");
     try {
-      await SendOtpToEmail({ email: targetEmail });
+      await SendOtpToEmail(data);
       setIsOtpSent(true);
       setOtpMessage("OTP sent to email successfully. Check your inbox!");
-      
     } catch (error) {
-      setErrors({
-        email: error.response?.data?.message || "Failed to send OTP.",
-      });
+      const message = error.response?.data?.message || "Failed to send OTP.";
+
+      const fieldErrors = {};
+
+      if (message.toLowerCase().includes("username")) {
+        fieldErrors.username = message;
+      } else if (message.toLowerCase().includes("email")) {
+        fieldErrors.email = message;
+      } else {
+        fieldErrors.response = message;
+      }
+
+      setErrors(fieldErrors);
     } finally {
       setIsSendingOtp(false);
     }
   };
   const handleResendOtp = async () => {
     setOtp("");
-    await triggerOtpSendAPI(email.trim().toLowerCase());
+    await triggerOtpSendAPI({
+      email: email.trim().toLowerCase(),
+      username: username.trim().toLowerCase(),
+    });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,9 +121,11 @@ export default function Register() {
         setErrors(formErrors);
         return;
       }
-      await triggerOtpSendAPI(email.trim().toLowerCase());
-    }
-    else {
+      await triggerOtpSendAPI({
+        email: email.trim().toLowerCase(),
+        username: username.trim().toLowerCase(),
+      });
+    } else {
       if (isPublishing) return;
       const { isValid, errors: formErrors } = validateForm(true);
       if (!isValid) {
@@ -122,15 +140,17 @@ export default function Register() {
         email: email.trim().toLowerCase(),
         otp: otp.trim(),
       };
-      
+
       try {
-      await RegisterUserByUsername(data);
-        
+        await RegisterUserByUsername(data);
+
         setSuccess(true);
         setTimeout(() => {
           navigate("/signin");
         }, 1500);
       } catch (error) {
+        console.log(error);
+        
         setErrors({
           response: error.response?.data?.message || "Something went wrong",
         });
@@ -301,7 +321,7 @@ export default function Register() {
                       inputMode="numeric"
                       maxLength={6}
                       disabled={isPublishing}
-                      className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white disabled:opacity-50"
+                      className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white disabled:opacity-50 outline-none"
                       placeholder="Enter 6 digit OTP"
                       value={otp}
                       onChange={(e) => {
@@ -354,13 +374,13 @@ export default function Register() {
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : null}
                 <span>
-                  {isSendingOtp 
-                    ? "Sending OTP..." 
-                    : isPublishing 
-                    ? "Verifying & Signing Up..." 
-                    : isOtpSent 
-                    ? "Verify & Sign Up" 
-                    : "Register Account"}
+                  {isSendingOtp
+                    ? "Sending OTP..."
+                    : isPublishing
+                      ? "Verifying & Signing Up..."
+                      : isOtpSent
+                        ? "Verify & Sign Up"
+                        : "Register Account"}
                 </span>
               </button>
             </form>

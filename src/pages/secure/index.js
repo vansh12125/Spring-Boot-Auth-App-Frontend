@@ -4,3 +4,4 @@ export { default as CreatePost } from "./CreatePost";
 export { default as Feeds } from "./Feeds";
 export { default as MyPosts } from "./MyPosts";
 export { default as EditPost } from "./EditPost";
+export {default as UserProfile} from "./UserProfile"

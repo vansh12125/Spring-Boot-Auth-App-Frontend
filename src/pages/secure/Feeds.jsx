@@ -5,6 +5,8 @@ import { Grid } from "@/components/common";
 import { FloatingNav, Avatar } from "@/components/ui";
 import { useAuth } from "@/hooks";
 import { getAllPost, likePost, unLikePost } from "@/service/PostService";
+import { Link } from "react-router-dom";
+
 export default function Feeds() {
   const [posts, setPosts] = useState([]);
   const { user } = useAuth();
@@ -25,8 +27,7 @@ export default function Feeds() {
       }));
 
       setPosts(normalizedPosts);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
   const handleLike = async (postId) => {
     if (!currentUserId) return;
@@ -99,21 +100,23 @@ export default function Feeds() {
               >
                 {}
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Avatar
-                      src={post.userData?.avatar}
-                      alt={post.userData?.name || "User"}
-                      className="w-10 h-10 rounded-xl object-cover border border-white/10"
-                    />
-                    <div>
-                      <span className="block text-sm font-semibold text-white">
-                        {post.userData?.name || "Anonymous"}
-                      </span>
-                      <span className="block text-[10px] font-mono text-gray-400">
-                        @{post.userData?.username || "unknown"}
-                      </span>
+                  <Link to={`/u/${post.userData?.username}`}>
+                    <div className="flex items-center space-x-3">
+                      <Avatar
+                        src={post.userData?.avatar}
+                        alt={post.userData?.name || "User"}
+                        className="w-10 h-10 rounded-xl object-cover border border-white/10"
+                      />
+                      <div>
+                        <span className="block text-sm font-semibold text-white">
+                          {post.userData?.name || "Anonymous"}
+                        </span>
+                        <span className="block text-[10px] font-mono text-gray-400">
+                          @{post.userData?.username || "unknown"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex items-center space-x-1.5 text-gray-500 font-mono text-[10px]">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatDate(post.createdAt)}</span>
