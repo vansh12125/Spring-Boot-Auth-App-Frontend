@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { LogOut, UserCheck } from "lucide-react";
+import { LogOut, UserCheck, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LogoutUser } from "@/service";
 import { logout } from "@/redux";
@@ -20,6 +20,7 @@ export default function ProfileHeader() {
       navigate("/signin", { replace: true });
     }
   };
+
   return (
     <>
       <motion.div
@@ -29,11 +30,8 @@ export default function ProfileHeader() {
         className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl"
       >
         <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 min-w-0 flex-1">
-          {}
-          <div className="w-16 h-16 shrink-0 rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/10 flex items-center justify-center text-xl font-bold text-white tracking-wider shadow-inner font-mono select-none">
-            <Avatar className="w-16 h-16 text-xl " rounded="rounded-xl" />
-          </div>
-          {}
+          <Avatar className="w-16 h-16 text-xl shrink-0" rounded="rounded-xl" />
+          
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-center sm:justify-start space-x-2">
               <h1 className="text-xl font-bold text-white tracking-tight truncate">
@@ -44,18 +42,27 @@ export default function ProfileHeader() {
                 ONLINE
               </span>
             </div>
+            
             <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">
               u/{user?.username}
             </p>
-            {}
+
+            <button 
+              onClick={() => navigate("/my-posts")}
+              className="inline-flex items-center space-x-1.5 mt-2 px-2.5 py-1 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 rounded-md text-[11px] font-mono text-gray-400 hover:text-white transition-all cursor-pointer group"
+            >
+              <FileText className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
+              <span>{user?.userPosts.length || 0} Posts</span>
+            </button>
+            
             {user?.bio && (
-              <p className="text-xs text-gray-400 font-mono mt-1 break-words line-clamp-2 max-w-sm sm:max-w-md mx-auto sm:mx-0">
+              <p className="text-xs text-gray-400 font-mono mt-3 break-words line-clamp-2 max-w-sm sm:max-w-md mx-auto sm:mx-0">
                 {user.bio}
               </p>
             )}
           </div>
         </div>
-        {}
+
         <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
           <button
             className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors shadow-lg"

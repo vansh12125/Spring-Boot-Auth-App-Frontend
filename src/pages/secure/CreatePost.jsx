@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Send ,AlertCircle, CircleCheck} from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  AlertCircle,
+  CircleCheck,
+  Globe,
+  Lock,
+} from "lucide-react";
 import { Grid } from "@/components/common";
 import { useAuth } from "@/hooks";
 import { createPost } from "@/service/PostService";
@@ -9,6 +16,7 @@ export default function CreatePost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
   const { user } = useAuth();
   const [error, setError] = useState("");
@@ -21,8 +29,8 @@ export default function CreatePost() {
     setError("");
     setSuccess("");
 
-    const postTitle=title.trim()
-    const postContent=content.trim()
+    const postTitle = title.trim();
+    const postContent = content.trim();
     if (!postTitle) {
       setError("Title is required.");
       return;
@@ -33,8 +41,8 @@ export default function CreatePost() {
       return;
     }
 
-    if (postTitle.length > 40) {
-      setError("Title cannot exceed 40 characters.");
+    if (postTitle.length > 100) {
+      setError("Title cannot exceed 100 characters.");
       return;
     }
 
@@ -48,8 +56,8 @@ export default function CreatePost() {
       return;
     }
 
-    if (postContent.length > 400) {
-      setError("Content cannot exceed 40 characters.");
+    if (postContent.length > 1000) {
+      setError("Content cannot exceed 1000 characters.");
       return;
     }
 
@@ -57,11 +65,12 @@ export default function CreatePost() {
 
     try {
       const postData = {
-        title:postTitle,
-        content:postContent,
+        title: postTitle,
+        content: postContent,
         userId: user.userId,
+        isPublic: isPublic,
       };
-      const response = await createPost(postData);
+      await createPost(postData);
       setSuccess("Post created successfully.");
       setTimeout(() => {
         navigate("/dashboard");
@@ -165,6 +174,38 @@ export default function CreatePost() {
                 placeholder="Type your content here..."
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                Visibility
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPublic(true)}
+                  className={`flex items-center justify-center space-x-2 p-3 rounded-lg border text-xs font-mono transition-all ${
+                    isPublic
+                      ? "bg-white text-black border-white font-semibold"
+                      : "bg-black/20 text-gray-400 border-white/5 hover:border-white/10"
+                  }`}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Public</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPublic(false)}
+                  className={`flex items-center justify-center space-x-2 p-3 rounded-lg border text-xs font-mono transition-all ${
+                    !isPublic
+                      ? "bg-white text-black border-white font-semibold"
+                      : "bg-black/20 text-gray-400 border-white/5 hover:border-white/10"
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Private</span>
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-end space-x-3 pt-4 border-t border-white/[0.04]">

@@ -49,6 +49,9 @@ export const axiosResponseInterceptor = (store) => {
         "/auth/register",
         "/auth/refresh",
         "/auth/signout",
+        "/auth/send-otp",
+        "/auth/verify-otp",
+        "/auth/resend-otp",
       ];
 
       if (authEndpoints.some((url) => ogReq.url?.startsWith(url))) {

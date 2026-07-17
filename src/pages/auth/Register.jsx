@@ -1,129 +1,149 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuthPageScene3D } from "@/components/three";
 import {
   RegisterUserByUsername,
   LoginUserByGoogle,
   LoginUserByGithub,
+  SendOtpToEmail,
 } from "@/service";
-import { CircleX, SaveCheck } from "lucide-react";
-
+import {
+  CircleX,
+  SaveCheck,
+  ShieldCheck,
+  Loader2,
+  RotateCcw,
+} from "lucide-react";
 export default function Register() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [otpMessage, setOtpMessage] = useState("");
   const navigate = useNavigate();
-
-  const validateForm = (fullName, email, username, password) => {
-    const errors = {};
-
-    const trimmedFullName = fullName.trim();
-
-    if (!trimmedFullName) {
-      errors.fullName = "Full name is required";
-    } else if (trimmedFullName.length < 3) {
-      errors.fullName = "Full name must be at least 3 characters";
-    } else if (trimmedFullName.length > 50) {
-      errors.fullName = "Full name cannot exceed 50 characters";
-    } else if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(trimmedFullName)) {
-      errors.fullName = "Full name can only contain letters and single spaces";
-    }
-
+  const validateForm = (checkOtp = false) => {
+    const formErrors = {};
     const trimmedEmail = email.trim().toLowerCase();
-
-    if (!trimmedEmail) {
-      errors.email = "Email is required";
-    } else if (
-      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)
-    ) {
-      errors.email = "Please enter a valid email address";
-    }
-
+    const trimmedFullName = fullName.trim();
     const trimmedUsername = username.trim();
+    if (!trimmedEmail) {
+      formErrors.email = "Email is required";
+    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
+      formErrors.email = "Please enter a valid email address";
+    }
+    if (!trimmedFullName) {
+      formErrors.fullName = "Full name is required";
+    } else if (trimmedFullName.length < 3) {
+      formErrors.fullName = "Full name must be at least 3 characters";
+    } else if (trimmedFullName.length > 50) {
+      formErrors.fullName = "Full name cannot exceed 50 characters";
+    } else if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(trimmedFullName)) {
+      formErrors.fullName = "Full name can only contain letters and single spaces";
+    }
     if (!trimmedUsername) {
-      errors.username = "Username is required";
+      formErrors.username = "Username is required";
     } else if (trimmedUsername.length < 3) {
-      errors.username = "Username must be at least 3 characters";
+      formErrors.username = "Username must be at least 3 characters";
     } else if (trimmedUsername.length > 30) {
-      errors.username = "Username cannot exceed 30 characters";
+      formErrors.username = "Username cannot exceed 30 characters";
     } else if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(trimmedUsername)) {
-      errors.username =
-        "Username must start with a letter and can only contain letters, numbers, and underscores (_).";
+      formErrors.username = "Username must start with a letter and contain only alphanumeric symbols or underscores.";
     }
-
     if (!password) {
-      errors.password = "Password is required";
+      formErrors.password = "Password is required";
     } else if (password.length < 8) {
-      errors.password = "Password must be at least 8 characters";
+      formErrors.password = "Password must be at least 8 characters";
     } else if (/\s/.test(password)) {
-      errors.password = "Password cannot contain spaces";
+      formErrors.password = "Password cannot contain spaces";
     }
-
+    if (checkOtp) {
+      if (!otp.trim()) {
+        formErrors.otp = "OTP is required";
+      } else if (otp.trim().length !== 6) {
+        formErrors.otp = "OTP must be 6 digits";
+      }
+    }
     return {
-      isValid: Object.keys(errors).length === 0,
-      errors,
+      isValid: Object.keys(formErrors).length === 0,
+      errors: formErrors,
     };
   };
-
+  const triggerOtpSendAPI = async (targetEmail) => {
+    setIsSendingOtp(true);
+    setOtpMessage("");
+    try {
+      await SendOtpToEmail({ email: targetEmail });
+      setIsOtpSent(true);
+      setOtpMessage("OTP sent to email successfully. Check your inbox!");
+      
+    } catch (error) {
+      setErrors({
+        email: error.response?.data?.message || "Failed to send OTP.",
+      });
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+  const handleResendOtp = async () => {
+    setOtp("");
+    await triggerOtpSendAPI(email.trim().toLowerCase());
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
-    const { isValid, errors } = validateForm(
-      fullName,
-      email,
-      username,
-      password,
-    );
-    if (!isValid) {
-      setErrors(errors);
-      return;
+    if (!isOtpSent) {
+      if (isSendingOtp) return;
+      const { isValid, errors: formErrors } = validateForm(false);
+      if (!isValid) {
+        setErrors(formErrors);
+        return;
+      }
+      await triggerOtpSendAPI(email.trim().toLowerCase());
     }
-    const data = {
-      username: username.trim().toLowerCase(),
-      password: password,
-      name: fullName.trim(),
-      email: email,
-    };
-  
-    try {
+    else {
+      if (isPublishing) return;
+      const { isValid, errors: formErrors } = validateForm(true);
+      if (!isValid) {
+        setErrors(formErrors);
+        return;
+      }
+      setIsPublishing(true);
+      const data = {
+        username: username.trim().toLowerCase(),
+        password,
+        name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+      };
+      
+      try {
       await RegisterUserByUsername(data);
-      setSuccess(true);
-      clearFields();
-      setErrors({})
-      setTimeout(() => {
-        navigate("/signin");
-      }, 1000);
-    } catch (error) {
-      errors.response = error.response?.data?.message || "Something went wrong";
-      setErrors(errors);
+        
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/signin");
+        }, 1500);
+      } catch (error) {
+        setErrors({
+          response: error.response?.data?.message || "Something went wrong",
+        });
+      } finally {
+        setIsPublishing(false);
+      }
     }
   };
-
-  const registerByGoogle =  () => {
-    LoginUserByGoogle();
-  };
-  const registerByGithub =  () => {
-    LoginUserByGithub();
-  };
-
-  const clearFields = () => {
-    setFullName("");
-    setEmail("");
-    setErrors({});
-    setPassword("");
-    setUsername("");
-  };
-
   return (
     <div className="relative min-h-screen w-full flex items-center justify-start overflow-hidden bg-[#050507]">
       <div className="absolute inset-0 z-0 pointer-events-none">
         <AuthPageScene3D />
       </div>
-
       <div className="max-w-7xl mx-auto w-full px-6 md:px-12 relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center min-h-screen py-4">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -136,138 +156,216 @@ export default function Register() {
               Create Account
             </h2>
             <p className="text-[11px] text-gray-400 mt-0.5">
-              Get started with your free account today.
+              Fill out your details to receive an authentication security code.
             </p>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label
-                htmlFor="register-name"
-                className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                id="register-name"
-                autoComplete="name"
-                className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono"
-                placeholder="Vansh Sahu"
-                value={fullName}
-                onChange={(e) => {
-                  setFullName(e.target.value);
-                }}
-                required
-              />
-              {errors.fullName && (
-                <p className="text-red-500 text-sm">{errors.fullName}</p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="register-handle"
-                className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
-              >
-                Username
-              </label>
-              <input
-                type="text"
-                name="handle"
-                id="register-handle"
-                className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono"
-                placeholder="u/kernel_panic"
-                autoComplete="username"
-                required
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                }}
-              />
-              {errors.username && (
-                <p className="text-red-500 text-sm">{errors.username}</p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="register-email"
-                className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
-              >
-                Email Address
-              </label>
-              <input
-                type="email"
-                name="email"
-                id="register-email"
-                autoComplete="username"
-                className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono"
-                placeholder="handle@devsphere.io"
-                required
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="register-password"
-                className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                id="register-password"
-                autoComplete="new-password"
-                className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono"
-                placeholder="••••••••••••"
-                required
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
-              )}
-            </div>
-            <div className="flex items-start pt-0.5">
-              <input
-                type="checkbox"
-                id="terms"
-                className="w-3.5 h-3.5 accent-white rounded bg-black/40 border-white/5 mt-0.5 cursor-pointer"
-                required
-              />
-              <label
-                htmlFor="terms"
-                className="ml-2 text-[10px] text-gray-400 font-mono leading-tight select-none cursor-pointer"
-              >
-                I agree to the terms and privacy guidelines.
-              </label>
-            </div>
-            {errors.response && (
-              <div className="text-red-500 text-l text-center flex justify-center items-center gap-2">
-                <CircleX size={20} /> {errors.response}
+          <div className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {}
+              <div>
+                <label
+                  htmlFor="register-email"
+                  className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
+                >
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="register-email"
+                  disabled={isOtpSent || isSendingOtp || isPublishing}
+                  className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
+                  placeholder="handle@devsphere.io"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-[11px] font-mono mt-1">
+                    {errors.email}
+                  </p>
+                )}
               </div>
-            )}
-            {success && (
-              <div className="text-green-500 text-l text-center flex justify-center items-center gap-2">
-                <SaveCheck size={20} /> User Registered Successfully...
+              {}
+              <div>
+                <label
+                  htmlFor="register-name"
+                  className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
+                >
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="register-name"
+                  disabled={isOtpSent || isPublishing}
+                  className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
+                  placeholder="Vansh Sahu"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+                {errors.fullName && (
+                  <p className="text-red-500 text-[11px] font-mono mt-1">
+                    {errors.fullName}
+                  </p>
+                )}
               </div>
-            )}
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors tracking-wide mt-2 shadow-lg"
-            >
-              Sign Up
-            </button>
-          </form>
-
+              {}
+              <div>
+                <label
+                  htmlFor="register-handle"
+                  className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
+                >
+                  Username
+                </label>
+                <input
+                  type="text"
+                  id="register-handle"
+                  disabled={isOtpSent || isPublishing}
+                  className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
+                  placeholder="u/kernel_panic"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  autoComplete="username"
+                />
+                {errors.username && (
+                  <p className="text-red-500 text-[11px] font-mono mt-1">
+                    {errors.username}
+                  </p>
+                )}
+              </div>
+              {}
+              <div>
+                <label
+                  htmlFor="register-password"
+                  className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
+                >
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="register-password"
+                  disabled={isOtpSent || isPublishing}
+                  className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-[11px] font-mono mt-1">
+                    {errors.password}
+                  </p>
+                )}
+              </div>
+              {}
+              <div className="flex items-start pt-0.5">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  disabled={isPublishing}
+                  className="w-3.5 h-3.5 accent-white rounded bg-black/40 border-white/5 mt-0.5 cursor-pointer disabled:opacity-50"
+                  required
+                />
+                <label
+                  htmlFor="terms"
+                  className="ml-2 text-[10px] text-gray-400 font-mono leading-tight select-none cursor-pointer"
+                >
+                  I agree to the terms and privacy guidelines.
+                </label>
+              </div>
+              {}
+              {otpMessage && (
+                <div className="p-2 bg-white/[0.02] border border-white/5 rounded-lg text-[11px] font-mono text-gray-300">
+                  {otpMessage}
+                </div>
+              )}
+              {}
+              <AnimatePresence>
+                {isOtpSent && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden space-y-1 pt-2 border-t border-white/[0.04]"
+                  >
+                    <label
+                      htmlFor="register-otp"
+                      className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
+                    >
+                      Enter 6 Digit OTP Code
+                    </label>
+                    <input
+                      type="text"
+                      id="register-otp"
+                      inputMode="numeric"
+                      maxLength={6}
+                      disabled={isPublishing}
+                      className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white disabled:opacity-50"
+                      placeholder="Enter 6 digit OTP"
+                      value={otp}
+                      onChange={(e) => {
+                        setOtp(e.target.value.replace(/\D/g, ""));
+                      }}
+                    />
+                    <div className="flex justify-between items-center pt-0.5 px-0.5">
+                      <div className="flex-1">
+                        {errors.otp && (
+                          <p className="text-red-500 text-[11px] font-mono">
+                            {errors.otp}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isSendingOtp || isPublishing}
+                        onClick={handleResendOtp}
+                        className="text-[10px] text-gray-400 hover:text-white transition-colors font-mono flex items-center gap-1 disabled:opacity-40 ml-auto bg-transparent border-none outline-none cursor-pointer"
+                      >
+                        {isSendingOtp ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <RotateCcw className="w-2.5 h-2.5" />
+                        )}
+                        <span>Resend OTP</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {}
+              {errors.response && (
+                <div className="text-red-500 text-xs text-center flex justify-center items-center gap-2 font-mono pt-2">
+                  <CircleX size={16} /> {errors.response}
+                </div>
+              )}
+              {success && (
+                <div className="text-green-500 text-xs text-center flex justify-center items-center gap-2 font-mono pt-2">
+                  <SaveCheck size={16} /> User Registered Successfully...
+                </div>
+              )}
+              {}
+              <button
+                type="submit"
+                disabled={isSendingOtp || isPublishing}
+                className="w-full py-2.5 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors tracking-wide mt-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSendingOtp || isPublishing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : null}
+                <span>
+                  {isSendingOtp 
+                    ? "Sending OTP..." 
+                    : isPublishing 
+                    ? "Verifying & Signing Up..." 
+                    : isOtpSent 
+                    ? "Verify & Sign Up" 
+                    : "Register Account"}
+                </span>
+              </button>
+            </form>
+          </div>
+          {}
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/[0.06]"></div>
@@ -278,43 +376,34 @@ export default function Register() {
               </span>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <button
               className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
-              onClick={() => {
-                registerByGoogle();
-              }}
+              onClick={LoginUserByGoogle}
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                 <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 />
                 <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                   fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                 />
                 <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
                   fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
                 />
                 <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
               <span>Google</span>
             </button>
             <button
               className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
-              onClick={() => {
-                registerByGithub();
-              }}
+              onClick={LoginUserByGithub}
             >
               <svg
                 className="w-3.5 h-3.5"
@@ -340,7 +429,6 @@ export default function Register() {
             </Link>
           </div>
         </motion.div>
-
         <div className="lg:col-span-7 h-[10px] lg:h-auto pointer-events-none" />
       </div>
     </div>

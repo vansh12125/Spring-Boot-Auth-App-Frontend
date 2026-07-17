@@ -121,7 +121,7 @@ export default function Feeds() {
                 </div>
                 {}
                 <div className="mb-6">
-                  <h2 className="text-base font-bold text-white mb-2 tracking-tight leading-snug">
+                  <h2 className="text-base font-bold text-white mb-2 tracking-tight leading-snug capitalize">
                     {post.title}
                   </h2>
                   <p className="text-xs text-gray-300 leading-relaxed font-sans">

@@ -27,6 +27,18 @@ const UpdateProfile = async (userData) => {
   return await apiClient.patch("/users/profile", userData);
 };
 
+const SendOtpToEmail = async (data) => {
+  return await apiClient.post("/auth/send-otp", data);
+};
+
+const VerifyOtpCode = async (data) => {
+  return await apiClient.post("/auth/verify-otp", data);
+};
+
+const ResendOtp = async (data) => {
+  return await apiClient.post("/auth/resend-otp", data);
+};
+
 export {
   RegisterUserByUsername,
   LoginUserByGoogle,
@@ -35,4 +47,7 @@ export {
   LoginUserByUsername,
   LogoutUser,
   UpdateProfile,
+  SendOtpToEmail,
+  VerifyOtpCode,
+  ResendOtp,
 };

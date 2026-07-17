@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { RefreshTokenRequest } from "@/service";
 import { login, logout, finishInitialization } from "@/redux";
 import { useAuth } from "@/hooks";
-
+import {LoadingAnimation} from "@/components/ui"
 export default function AuthInitializer({ children }) {
   const { initialized, accessToken, dispatch } = useAuth();
 
@@ -34,7 +34,7 @@ export default function AuthInitializer({ children }) {
   }, [accessToken, dispatch]);
 
   if (!initialized) {
-    return <h1>Loading...</h1>;
+    return <LoadingAnimation/>;
   }
 
   return children;
