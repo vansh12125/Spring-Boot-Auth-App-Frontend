@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, MessageSquare, Share2, Clock } from "lucide-react";
 import { Grid } from "@/components/common";
-import { FloatingNav, Avatar } from "@/components/ui";
+import { FloatingNav, Avatar, ShareBtn } from "@/components/ui";
 import { useAuth } from "@/hooks";
 import { getAllPost, likePost, unLikePost } from "@/service/PostService";
 import { Link } from "react-router-dom";
@@ -31,9 +31,7 @@ export default function Feeds() {
   };
   const handleLike = async (postId) => {
     if (!currentUserId) return;
-
     const previousPosts = [...posts];
-
     const updatedPosts = posts.map((post) => {
       if (post.id !== postId) return post;
 
@@ -117,20 +115,23 @@ export default function Feeds() {
                       </div>
                     </div>
                   </Link>
+
                   <div className="flex items-center space-x-1.5 text-gray-500 font-mono text-[10px]">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatDate(post.createdAt)}</span>
                   </div>
                 </div>
                 {}
-                <div className="mb-6">
-                  <h2 className="text-base font-bold text-white mb-2 tracking-tight leading-snug capitalize">
-                    {post.title}
-                  </h2>
-                  <p className="text-xs text-gray-300 leading-relaxed font-sans">
-                    {post.content}
-                  </p>
-                </div>
+                <Link to={`/post/${post.postId}`}>
+                  <div className="mb-6">
+                    <h2 className="text-base font-bold text-white mb-2 tracking-tight leading-snug capitalize">
+                      {post.title}
+                    </h2>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">
+                      {post.content}
+                    </p>
+                  </div>
+                </Link>
                 {}
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.04]">
                   <button
@@ -149,12 +150,11 @@ export default function Feeds() {
                   <div className="flex items-center space-x-4">
                     <button className="flex items-center space-x-2 text-xs font-mono text-gray-400 hover:text-white transition-colors">
                       <MessageSquare className="w-4 h-4" />
-                      <span>Comments</span>
+                      <span>Comments(NA)</span>
                     </button>
-                    <button className="flex items-center space-x-2 text-xs font-mono text-gray-400 hover:text-white transition-colors">
-                      <Share2 className="w-4 h-4" />
-                      <span>Share</span>
-                    </button>
+                    <ShareBtn
+                      text={`${window.location.origin}/post/${post.postId}`}
+                    />
                   </div>
                 </div>
               </motion.div>

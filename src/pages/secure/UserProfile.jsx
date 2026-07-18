@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate,Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -11,35 +11,107 @@ import {
   Loader2,
   CheckCircle2,
   HelpCircle,
+  Clock,
+  Heart,
 } from "lucide-react";
 import { Grid } from "@/components/common";
-import { FloatingNav, Avatar } from "@/components/ui";
+import { useAuth } from "@/hooks";
+import { FloatingNav, Avatar, ShareBtn } from "@/components/ui";
 import { getUserProfileByUsername } from "@/service/UserService";
-// import UserPosts from "../components/profile/UserPosts";
+import {
+  getAllPublicPostByUser,
+  likePost,
+  unLikePost,
+} from "@/service/PostService";
 export default function UserProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
   const [showPosts, setShowPosts] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [error, setError] = useState("");
+  const { user } = useAuth();
+  const currentUserId = user?.userId || user?.id;
   useEffect(() => {
     fetchProfile();
     setShowPosts(false);
+    setPosts([]);
   }, [username]);
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
       setError("");
       const response = await getUserProfileByUsername(username);
-      console.log(response);
-
       setProfile(response.data);
     } catch (err) {
       console.log(err);
       setError("User identity profile not found inside the network grid.");
     } finally {
       setIsLoading(false);
+    }
+  };
+  const handleTogglePosts = async () => {
+    if (showPosts) {
+      setShowPosts(false);
+      return;
+    }
+    if (posts.length === 0) {
+      try {
+        setIsLoadingPosts(true);
+        const targetId = profile?.userId || profile?.id || profile?._id;
+        const response = await getAllPublicPostByUser(targetId);
+        const normalizedPosts = (response.data || []).map((post) => ({
+          ...post,
+          id: post.postId || post.id || post._id,
+          likes: Array.isArray(post.likes) ? post.likes : [],
+          hasLiked:
+            Array.isArray(post.likes) && post.likes.includes(currentUserId),
+        }));
+        setPosts(normalizedPosts);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsLoadingPosts(false);
+      }
+    }
+    setShowPosts(true);
+  };
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+  const handleLike = async (postId) => {
+    if (!currentUserId) return;
+    const previousPosts = [...posts];
+    const updatedPosts = posts.map((post) => {
+      if (post.id !== postId) return post;
+      const liked = post.likes.includes(currentUserId);
+      return {
+        ...post,
+        likes: liked
+          ? post.likes.filter((id) => id !== currentUserId)
+          : [...post.likes, currentUserId],
+        hasLiked: !liked,
+      };
+    });
+    setPosts(updatedPosts);
+    try {
+      const clickedPost = previousPosts.find((p) => p.id === postId);
+      if (clickedPost.likes.includes(currentUserId)) {
+        await unLikePost(postId, currentUserId);
+      } else {
+        await likePost(postId, currentUserId);
+      }
+    } catch (error) {
+      setPosts(previousPosts);
     }
   };
   if (isLoading) {
@@ -58,7 +130,7 @@ export default function UserProfile() {
         <AlertCircle className="w-8 h-8 text-red-500/80 mb-3" />
         <p>{error}</p>
         <button
-          onClick={() => navigate("/feed")}
+          onClick={() => navigate("/feeds")}
           className="mt-4 px-4 py-2 bg-white text-black font-semibold rounded-lg text-xs transition-colors hover:bg-gray-200 cursor-pointer"
         >
           Return to Feed
@@ -70,7 +142,6 @@ export default function UserProfile() {
     <div className="relative min-h-screen w-full bg-[#050507] text-gray-300 pt-40 pb-32 overflow-x-hidden">
       <Grid />
       <div className="max-w-3xl mx-auto w-full px-6 relative z-10 space-y-6">
-        {}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,9 +156,11 @@ export default function UserProfile() {
               rounded="rounded-2xl"
             />
             <div className="min-w-0 flex-1 space-y-1.5">
-              <h1 className="text-2xl font-bold text-white tracking-tight truncate">
-                {profile?.name}
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
+                <h1 className="text-2xl font-bold text-white tracking-tight truncate">
+                  {profile?.name}
+                </h1>
+                <div className="flex justify-center sm:justify-start">
                   {profile?.verified ? (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-mono uppercase tracking-wider">
                       <CheckCircle2 className="w-2.5 h-2.5" />
@@ -100,8 +173,7 @@ export default function UserProfile() {
                     </span>
                   )}
                 </div>
-              </h1>
-
+              </div>
               <p className="text-xs text-gray-400 font-mono truncate">
                 u/{profile?.username}
               </p>
@@ -127,28 +199,40 @@ export default function UserProfile() {
                 </div>
               </div>
             </div>
+            <div>
+              <ShareBtn
+                text={`${window.location.origin}/u/${profile?.username}`}
+                want-bg={true}
+              />
+            </div>
           </div>
-
           <div className="mt-8 pt-4 border-t border-white/[0.04] flex justify-center sm:justify-end">
             <button
-              onClick={() => setShowPosts(!showPosts)}
+              onClick={handleTogglePosts}
+              disabled={isLoadingPosts}
               className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-mono border tracking-wide transition-all duration-300 cursor-pointer ${
                 showPosts
                   ? "bg-white text-black border-white font-semibold"
                   : "bg-white/[0.02] border-white/5 text-gray-400 hover:text-white hover:bg-white/[0.05]"
               }`}
             >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Show Publications</span>
-              {showPosts ? (
-                <ChevronUp className="w-3.5 h-3.5" />
+              {isLoadingPosts ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <ChevronDown className="w-3.5 h-3.5" />
+                <FileText className="w-3.5 h-3.5" />
               )}
+              <span>
+                {isLoadingPosts ? "Querying Matrix..." : "Show Publications"}
+              </span>
+              {!isLoadingPosts &&
+                (showPosts ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                ))}
             </button>
           </div>
         </motion.div>
-        {}
         <AnimatePresence mode="wait">
           {showPosts && (
             <motion.div
@@ -156,11 +240,69 @@ export default function UserProfile() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+              className="space-y-4 w-full"
             >
-              {}
-              {/* <UserPosts
-                userId={profile?.userId || profile?.id || profile?._id}
-              /> */}
+              {posts.length === 0 ? (
+                <div className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-12 text-center font-mono text-xs text-gray-500 shadow-xl">
+                  No Post Available.
+                </div>
+              ) : (
+                <div>
+                  <div className="inline-flex items-center space-x-1.5 mt-2 px-1 py-0.5 text-[15px] font-mono text-gray-400 select-none mb-3">
+                    <FileText className="w-4 h-4 text-white/20" />
+                    <span className="text-white font-semibold tracking-tight">
+                      {posts?.length || 0}
+                    </span>
+                    <span className="text-gray-500 text-[15px] uppercase">
+                      posts
+                    </span>
+                  </div>
+                  {posts.map((post) => {
+                    return (
+                      <Link key={post.id} to={`${window.location.origin}/post/${post.postId}`}>
+                        <div className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 shadow-xl text-left mb-2">
+                          <div className="flex items-center justify-between font-mono text-[10px] text-gray-500 mb-3">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>{formatDate(post.createdAt)}</span>
+                            </div>
+                          </div>
+                          <div className="mb-5">
+                            <h3 className="text-base font-bold text-white mb-1.5 tracking-tight leading-snug">
+                              {post.title}
+                            </h3>
+                            <p className="text-xs text-gray-300 leading-relaxed font-sans">
+                              {post.content}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-5 pt-3.5 border-t border-white/[0.04]">
+                            <button
+                              onClick={() => handleLike(post.id)}
+                              className={`flex items-center space-x-2 text-xs font-mono transition-colors group cursor-pointer ${
+                                post.hasLiked
+                                  ? "text-red-500 hover:text-red-400"
+                                  : "text-gray-400 hover:text-white"
+                              }`}
+                            >
+                              <Heart
+                                className={`w-4 h-4 transition-all duration-200 group-active:scale-90 ${
+                                  post.hasLiked
+                                    ? "fill-current text-red-500"
+                                    : "text-gray-500"
+                                }`}
+                              />
+                              <span>{post.likes.length} Likes</span>
+                            </button>
+                            <ShareBtn
+                              text={`${window.location.origin}/post/${post.postId}`}
+                            />
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

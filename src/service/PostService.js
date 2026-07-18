@@ -16,6 +16,10 @@ const getAllPostByUser = async (userId) => {
   return await apiClient.get(`/posts/post/user/${userId}`);
 };
 
+const getAllPublicPostByUser = async (userId) => {
+  return await apiClient.get(`/users/user/posts/${userId}`);
+};
+
 const likePost = async (postId, userId) => {
   return await apiClient.post(`/posts/post/${postId}/like/${userId}`);
 };
@@ -46,4 +50,5 @@ export {
   deletePost,
   getPostByIdAndValidateUser,
   updatePost,
+  getAllPublicPostByUser,
 };

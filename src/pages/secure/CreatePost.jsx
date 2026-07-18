@@ -18,7 +18,7 @@ export default function CreatePost() {
   const [content, setContent] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
-  const { user } = useAuth();
+  const { user,dispatch } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const handleSubmit = async (e) => {

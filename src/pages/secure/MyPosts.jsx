@@ -10,47 +10,40 @@ import {
   Trash2,
   AlertTriangle,
   AlertCircle,
-  CircleCheck
+  CircleCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Grid } from "@/components/common";
-import { FloatingNav } from "@/components/ui";
-import { useAuth } from "@/hooks";
-import { getAllPostByUser, deletePost } from "@/service/PostService";
+import { FloatingNav, ShareBtn } from "@/components/ui";
+import { usePosts, useAuth } from "@/hooks";
+
 export default function MyPosts() {
-  const [activeDropdown, setActiveDropdown] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [postToDelete, setPostToDelete] = useState(null);
   const { user } = useAuth();
-  const currentUserId = user?.userId || user?.id;
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const { posts, fetched, fetchPosts, deleteUserPost } = usePosts();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   useEffect(() => {
-    if (!currentUserId) return;
-    const getAllPost = async () => {
-      try {
-        const response = await getAllPostByUser(currentUserId);
-        setPosts(response.data || []);
-      } catch (error) {
-        setError(error.response?.data?.message || "Failed to load publications.");
-      }
-    };
-    getAllPost();
-  }, [currentUserId]);
+    if (!fetched) {
+      fetchPosts(user.userId);
+    }
+  }, [fetched]);
+
   const toggleDropdown = (id) => {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
+
   const handleConfirmDelete = async () => {
-    const originalPosts = [...posts];
-    setPosts(posts.filter((post) => post.postId !== postToDelete));
     try {
-      await deletePost(postToDelete, currentUserId);
-      setSuccess("Post Deleted Successfully.");
+      await deleteUserPost(postToDelete, user.userId);
+
+      setSuccess("Post deleted successfully.");
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to delete the post.");
-      setPosts(originalPosts); 
+      setError(error.response?.data?.message || "Failed to delete post.");
     } finally {
       setPostToDelete(null);
+
       setTimeout(() => {
         setError("");
         setSuccess("");
@@ -214,10 +207,13 @@ export default function MyPosts() {
                     {post.content}
                   </p>
                 </div>
-                <div className="flex items-center pt-4 border-t border-white/[0.04]">
+                <div className="flex items-center pt-4 border-t border-white/[0.04] gap-4">
                   <div className="flex items-center space-x-2 text-xs font-mono text-gray-400">
                     <span>{post.likes?.length || 0} Likes</span>
                   </div>
+                  <ShareBtn
+                    text={`${window.location.origin}/post/${post.postId}`}
+                  />
                 </div>
               </motion.div>
             ))}
