@@ -47,7 +47,7 @@ export default function Navbar() {
             <button
               onClick={() => navigate("/dashboard")}
               className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/[0.02]  border border-white/10 flex items-center justify-center text-sm font-bold text-white shadow-lg hover:scale-105 transition-all duration-200"
-              title={user.name}
+              title={user?.name}
             >
               {<Avatar/>}
             </button>

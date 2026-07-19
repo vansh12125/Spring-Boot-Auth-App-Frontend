@@ -1,4 +1,4 @@
-import { apiClient } from "@/config";
+import { apiClient ,baseURL} from "@/config";
 
 const RegisterUserByUsername = async (userData) => {
   return await apiClient.post(`/auth/register`, userData);
@@ -39,6 +39,14 @@ const ResendOtp = async (data) => {
   return await apiClient.post("/auth/resend-otp", data);
 };
 
+const LinkGoogleAccount = () => {
+    window.location.href = `${baseURL}/auth/link/google`;
+};
+
+ const LinkGithubAccount = async () => {
+  window.location.href = `${baseURL}/auth/link/github`;
+};
+
 export {
   RegisterUserByUsername,
   LoginUserByGoogle,
@@ -50,4 +58,7 @@ export {
   SendOtpToEmail,
   VerifyOtpCode,
   ResendOtp,
+  LinkGoogleAccount,
+  LinkGithubAccount
+  
 };

@@ -142,14 +142,15 @@ export default function Register() {
       };
 
       try {
-        await RegisterUserByUsername(data);
-
+        const response = await RegisterUserByUsername(data);
+        console.log(response);
+        
         setSuccess(true);
         setTimeout(() => {
           navigate("/signin");
         }, 1500);
       } catch (error) {
-        console.log(error);
+        console.log(error.response);
         
         setErrors({
           response: error.response?.data?.message || "Something went wrong",
