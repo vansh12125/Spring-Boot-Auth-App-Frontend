@@ -6,3 +6,4 @@ export { default as MyPosts } from "./MyPosts";
 export { default as EditPost } from "./EditPost";
 export {default as UserProfile} from "./UserProfile"
 export {default as PostPage} from "./PostPage"
+export {default as Settings} from "./Settings"

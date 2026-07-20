@@ -23,6 +23,10 @@ const LogoutUser = async () => {
   return await apiClient.post("/auth/signout");
 };
 
+const LogoutAllSession = async () => {
+  return await apiClient.post("/auth/logout-all");
+};
+
 const UpdateProfile = async (userData) => {
   return await apiClient.patch("/users/profile", userData);
 };
@@ -47,6 +51,18 @@ const LinkGoogleAccount = () => {
   window.location.href = `${baseURL}/auth/link/github`;
 };
 
+const getAllActiveSession=async()=>{
+  return await apiClient.get(`/auth/user/sessions`)
+}
+
+const logoutParticularSession=async(sessionId)=>{
+  return await apiClient.delete(`/auth/user/sessions/${sessionId}`);
+}
+
+const deleteUser=async()=>{
+  return await apiClient.delete(`/auth/user/delete`);
+}
+
 export {
   RegisterUserByUsername,
   LoginUserByGoogle,
@@ -59,6 +75,9 @@ export {
   VerifyOtpCode,
   ResendOtp,
   LinkGoogleAccount,
-  LinkGithubAccount
-  
+  LinkGithubAccount,
+  LogoutAllSession,
+  getAllActiveSession,
+  logoutParticularSession,
+  deleteUser,
 };

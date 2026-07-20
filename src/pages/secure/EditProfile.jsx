@@ -125,13 +125,13 @@ export default function EditProfile() {
           transition={{ duration: 0.5 }}
           className="mb-6"
         >
-          <Link
-            to="/dashboard"
+          <div
+            onClick={()=>navigate(-1)}
             className="inline-flex items-center space-x-2 text-xs font-mono text-gray-500 hover:text-white transition-colors group"
           >
             <ArrowLeft className="w-3.5 h-3.5 transform group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Dashboard</span>
-          </Link>
+            <span>Back </span>
+          </div>
         </motion.div>
 
         <motion.div

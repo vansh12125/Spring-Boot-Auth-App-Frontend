@@ -1,25 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { LogOut, UserCheck, FileText } from "lucide-react";
+import { Settings, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { LogoutUser } from "@/service";
-import { logout } from "@/redux";
 import { useAuth, usePosts } from "@/hooks";
 import { Avatar, ShareBtn } from "@/components/ui";
+
 export default function ProfileHeader() {
   const navigate = useNavigate();
-  const { user, dispatch } = useAuth();
+  const { user } = useAuth();
   const { posts } = usePosts();
-  
-  const handleLogout = async () => {
-    try {
-      await LogoutUser();
-    } catch (error) {
-    } finally {
-      dispatch(logout());
-      navigate("/signin", { replace: true });
-    }
-  };
+
   return (
     <>
       <motion.div
@@ -28,6 +18,7 @@ export default function ProfileHeader() {
         transition={{ duration: 0.6 }}
         className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl"
       >
+        {/* User Information Block */}
         <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 min-w-0 flex-1">
           <Avatar className="w-16 h-16 text-xl shrink-0" rounded="rounded-xl" />
           <div className="min-w-0 flex-1">
@@ -48,7 +39,12 @@ export default function ProfileHeader() {
               className="inline-flex items-center space-x-1.5 mt-2 px-2.5 py-1 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 rounded-md text-[11px] font-mono text-gray-400 hover:text-white transition-all cursor-pointer group"
             >
               <FileText className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
-              <span>{posts?.length===0?user.userPosts.length:posts.length} Posts</span>
+              <span>
+                {posts?.length === 0
+                  ? user?.userPosts?.length || 0
+                  : posts?.length || 0}{" "}
+                Posts
+              </span>
             </button>
             {user?.bio && (
               <p className="text-xs text-gray-400 font-mono mt-3 break-words line-clamp-2 max-w-sm sm:max-w-md mx-auto sm:mx-0">
@@ -57,31 +53,20 @@ export default function ProfileHeader() {
             )}
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-3.5 w-full sm:w-auto shrink-0">
-          {}
-          <div className="flex items-center justify-center w-full sm:w-auto py-1 sm:py-0 shrink-0">
-            <ShareBtn
-              text={`${window.location.origin}/u/${user?.username}`}
-              want-bg={true}
-            />
-          </div>
-          {}
-          <div className="flex items-center gap-3 w-full sm:w-auto flex-1 sm:flex-initial">
-            <button
-              className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors shadow-lg cursor-pointer whitespace-nowrap"
-              onClick={() => navigate("/edit-profile")}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
-            </button>
-            <button
-              className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 rounded-lg text-xs font-mono text-gray-400 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Disconnect</span>
-            </button>
-          </div>
+
+        {/* Action Controls: Share & Settings */}
+        <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto shrink-0">
+          <ShareBtn
+            text={`${window.location.origin}/u/${user?.username}`}
+            want-bg={true}
+          />
+          <button
+            onClick={() => navigate("/settings")}
+            className="flex items-center justify-center space-x-2 px-4 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-gray-200 transition-colors shadow-lg cursor-pointer whitespace-nowrap"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span>Settings</span>
+          </button>
         </div>
       </motion.div>
     </>

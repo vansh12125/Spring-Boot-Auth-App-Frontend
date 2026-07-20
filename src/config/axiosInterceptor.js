@@ -95,10 +95,3 @@ export const axiosResponseInterceptor = (store) => {
     },
   );
 };
-
-const handleLogout = (store) => {
-  store.dispatch(logout());
-
-  localStorage.clear();
-  sessionStorage.clear();
-};
