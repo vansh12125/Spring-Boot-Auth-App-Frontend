@@ -265,17 +265,19 @@ export default function UserProfile() {
                   </div>
                   {posts.map((post) => {
                     return (
-                      <Link
+                      <div
+                        className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 shadow-xl text-left mb-2"
                         key={post.id}
-                        to={`${window.location.origin}/post/${post.postId}`}
                       >
-                        <div className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 shadow-xl text-left mb-2">
-                          <div className="flex items-center justify-between font-mono text-[10px] text-gray-500 mb-3">
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              <span>{formatDate(post.createdAt)}</span>
-                            </div>
+                        <div className="flex items-center justify-between font-mono text-[10px] text-gray-500 mb-3">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{formatDate(post.createdAt)}</span>
                           </div>
+                        </div>
+                        <Link
+                          to={`${window.location.origin}/post/${post.postId}`}
+                        >
                           <div className="mb-5">
                             <h3 className="text-base font-bold text-white mb-1.5 tracking-tight leading-snug">
                               {post.title}
@@ -284,30 +286,30 @@ export default function UserProfile() {
                               {post.content}
                             </p>
                           </div>
-                          <div className="flex items-center gap-5 pt-3.5 border-t border-white/[0.04]">
-                            <button
-                              onClick={() => handleLike(post.id)}
-                              className={`flex items-center space-x-2 text-xs font-mono transition-colors group cursor-pointer ${
+                        </Link>
+                        <div className="flex items-center gap-5 pt-3.5 border-t border-white/[0.04]">
+                          <button
+                            onClick={() => handleLike(post.id)}
+                            className={`flex items-center space-x-2 text-xs font-mono transition-colors group cursor-pointer ${
+                              post.hasLiked
+                                ? "text-red-500 hover:text-red-400"
+                                : "text-gray-400 hover:text-white"
+                            }`}
+                          >
+                            <Heart
+                              className={`w-4 h-4 transition-all duration-200 group-active:scale-90 ${
                                 post.hasLiked
-                                  ? "text-red-500 hover:text-red-400"
-                                  : "text-gray-400 hover:text-white"
+                                  ? "fill-current text-red-500"
+                                  : "text-gray-500"
                               }`}
-                            >
-                              <Heart
-                                className={`w-4 h-4 transition-all duration-200 group-active:scale-90 ${
-                                  post.hasLiked
-                                    ? "fill-current text-red-500"
-                                    : "text-gray-500"
-                                }`}
-                              />
-                              <span>{post.likes.length} Likes</span>
-                            </button>
-                            <ShareBtn
-                              text={`${window.location.origin}/post/${post.postId}`}
                             />
-                          </div>
+                            <span>{post.likes.length} Likes</span>
+                          </button>
+                          <ShareBtn
+                            text={`${window.location.origin}/post/${post.postId}`}
+                          />
                         </div>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>

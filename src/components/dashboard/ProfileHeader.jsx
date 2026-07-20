@@ -48,7 +48,7 @@ export default function ProfileHeader() {
               className="inline-flex items-center space-x-1.5 mt-2 px-2.5 py-1 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 rounded-md text-[11px] font-mono text-gray-400 hover:text-white transition-all cursor-pointer group"
             >
               <FileText className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
-              <span>{posts.length || 0} Posts</span>
+              <span>{posts?.length===0?user.userPosts.length:posts.length} Posts</span>
             </button>
             {user?.bio && (
               <p className="text-xs text-gray-400 font-mono mt-3 break-words line-clamp-2 max-w-sm sm:max-w-md mx-auto sm:mx-0">

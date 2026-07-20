@@ -83,8 +83,8 @@ export default function EditPost() {
       return;
     }
 
-    if (postContent.length > 400) {
-      setError("Content cannot exceed 400 characters.");
+    if (postContent.length > 1000) {
+      setError("Content cannot exceed 1000 characters.");
       return;
     }
 
