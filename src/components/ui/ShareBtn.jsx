@@ -8,12 +8,11 @@ const ShareBtn = ({ text, "want-bg": wantBg = false }) => {
 
   const handleShare = async () => {
     if (!text || !text.trim()) return;
-    
+
     try {
       await CopyToClipboard(text);
       setCopied(true);
     } catch (error) {
-      console.error(error);
     } finally {
       setTimeout(() => {
         setCopied(false);
@@ -33,8 +32,8 @@ const ShareBtn = ({ text, "want-bg": wantBg = false }) => {
                   : "bg-white/[0.02] hover:bg-white/[0.06] border-white/5 text-gray-400 hover:text-white"
               }`
             : copied
-            ? "text-emerald-400 font-semibold"
-            : "text-gray-400 hover:text-white"
+              ? "text-emerald-400 font-semibold"
+              : "text-gray-400 hover:text-white"
         }`}
       >
         {copied ? (

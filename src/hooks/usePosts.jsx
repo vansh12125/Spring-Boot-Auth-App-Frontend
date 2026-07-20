@@ -26,7 +26,6 @@ export default function usePosts() {
   const createNewPost = async (data) => {
     const response = await createPost(data);
     // console.log("added" + response);
-    console.log("okkk");
     
 
     dispatch(addPost(response.data.post));
@@ -44,7 +43,6 @@ export default function usePosts() {
 
   const editPost = async (postId, data) => {
     const response = await updatePostApi(postId, data);
-    console.log(response);
 
     dispatch(updatePost(response.data.post));
 

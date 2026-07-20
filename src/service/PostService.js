@@ -12,6 +12,10 @@ const getAllPost = async () => {
   return await apiClient.get("/posts");
 };
 
+const getPostByQuery = async (query) => {
+  return await apiClient.get(`/posts/post/query=${query}`);
+};
+
 const getAllPostByUser = async (userId) => {
   return await apiClient.get(`/posts/post/user/${userId}`);
 };
@@ -51,4 +55,5 @@ export {
   getPostByIdAndValidateUser,
   updatePost,
   getAllPublicPostByUser,
+  getPostByQuery,
 };

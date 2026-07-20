@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate,Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Clock,
   Heart,
+  ArrowLeft,
 } from "lucide-react";
 import { Grid } from "@/components/common";
 import { useAuth } from "@/hooks";
@@ -46,7 +47,6 @@ export default function UserProfile() {
       const response = await getUserProfileByUsername(username);
       setProfile(response.data);
     } catch (err) {
-      console.log(err);
       setError("User identity profile not found inside the network grid.");
     } finally {
       setIsLoading(false);
@@ -71,7 +71,6 @@ export default function UserProfile() {
         }));
         setPosts(normalizedPosts);
       } catch (err) {
-        console.log(err);
       } finally {
         setIsLoadingPosts(false);
       }
@@ -130,7 +129,7 @@ export default function UserProfile() {
         <AlertCircle className="w-8 h-8 text-red-500/80 mb-3" />
         <p>{error}</p>
         <button
-          onClick={() => navigate("/feeds")}
+          onClick={() => navigate("/feed")}
           className="mt-4 px-4 py-2 bg-white text-black font-semibold rounded-lg text-xs transition-colors hover:bg-gray-200 cursor-pointer"
         >
           Return to Feed
@@ -142,6 +141,13 @@ export default function UserProfile() {
     <div className="relative min-h-screen w-full bg-[#050507] text-gray-300 pt-40 pb-32 overflow-x-hidden">
       <Grid />
       <div className="max-w-3xl mx-auto w-full px-6 relative z-10 space-y-6">
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center space-x-2 text-xs font-mono text-gray-500 hover:text-white transition-colors group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 transform group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Dashboard</span>
+        </Link>
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -259,7 +265,10 @@ export default function UserProfile() {
                   </div>
                   {posts.map((post) => {
                     return (
-                      <Link key={post.id} to={`${window.location.origin}/post/${post.postId}`}>
+                      <Link
+                        key={post.id}
+                        to={`${window.location.origin}/post/${post.postId}`}
+                      >
                         <div className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 shadow-xl text-left mb-2">
                           <div className="flex items-center justify-between font-mono text-[10px] text-gray-500 mb-3">
                             <div className="flex items-center space-x-1">
