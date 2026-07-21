@@ -26,7 +26,7 @@ export default function AccountDetails() {
             </h2>
             {}
             {user?.verified ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-mono uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-mono uppercase tracking-wider" title='Email Is Verified'>
                 <CheckCircle2 className="w-2.5 h-2.5" />
                 Verified
               </span>

@@ -25,7 +25,6 @@ export default function usePosts() {
 
   const createNewPost = async (data) => {
     const response = await createPost(data);
-    // console.log("added" + response);
     
 
     dispatch(addPost(response.data.post));

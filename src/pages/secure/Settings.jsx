@@ -28,60 +28,83 @@ import {
   getAllActiveSession,
   logoutParticularSession,
   deleteUser,
+  UnLinkAccount,
 } from "@/service/AuthService";
 import { logout } from "@/redux/authSlice";
 import { useAuth } from "@/hooks";
 import { FloatingNav } from "@/components/ui";
-
 export default function Settings() {
   const navigate = useNavigate();
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const location = useLocation();
   const { user, dispatch } = useAuth();
-  const provider = user?.provider ? [...user.provider] : [];
-
+  const [provider, setProvider] = useState(
+    user?.provider ? [...user.provider] : [],
+  );
   const [showSessionsModal, setShowSessionsModal] = useState(false);
   const [showConfirmLogoutAll, setShowConfirmLogoutAll] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
-
   const [isLoading, SetIsLoading] = useState(true);
-  const [deletingSessionId, setDeletingSessionId] = useState(null); // Track session currently being deleted
+  const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
 
+  const handleUnlinkTargetAccount = async () => {
+    if (!unlinkTarget) {
+      return;
+    }
+    try {
+      const response = await UnLinkAccount({ provider: unlinkTarget });
+      setProvider((prev) => prev.filter((item) => item !== unlinkTarget));
+      setUnlinkTarget(null);
+
+      setSuccess(
+        response?.data ||
+          `${unlinkTarget
+            .toLowerCase()
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")} account unlinked successfully.`,
+      );
+    } catch (error) {
+      setUnlinkTarget(null);
+      triggerError(
+        err.response?.data?.message ||
+          `Failed to unlink ${unlinkTarget
+            .toLowerCase()
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")} account.`,
+      );
+    }
+  };
   const triggerSuccess = (msg) => {
     setError("");
     setSuccess(msg);
     setTimeout(() => setSuccess(""), 4000);
   };
-
   const triggerError = (msg) => {
     setSuccess("");
     setError(msg);
     setTimeout(() => setError(""), 4000);
   };
-
-  // Terminate a single session with loading state
   const handleLogoutSingleSession = async (sessionId) => {
     try {
       setDeletingSessionId(sessionId);
       await logoutParticularSession(sessionId);
-
-      // Match against both sessionId and id for safety
       setSessions((prev) =>
         prev.filter((s) => (s.sessionId || s.id) !== sessionId),
       );
       triggerSuccess("Terminated target device session.");
     } catch (err) {
-      console.error(err);
+     
       triggerError("Failed to terminate session. Please try again.");
     } finally {
       setDeletingSessionId(null);
     }
   };
-
   const handleLogoutAllOtherSessions = async () => {
     try {
       await LogoutAllSession();
@@ -94,43 +117,37 @@ export default function Settings() {
       setShowConfirmLogoutAll(false);
     }
   };
-
   const handleDeleteAccount = async () => {
     if (deleteInput !== "DELETE") return;
     setShowDeleteModal(false);
     try {
       const response = await deleteUser();
-      console.log(response);
       dispatch(logout());
+     
       if (response.data.success) {
         navigate("/signin?success=deleted-successfully");
       }
-    } catch (error) {}
-    setTimeout(() => {
-      navigate("/signin");
-    }, 2000);
+    } catch (error) {
+      triggerError(error?.response || "Some Error Occurred.");
+    }
   };
-
   const handleLogout = async () => {
     try {
       await LogoutUser();
     } catch (err) {
-      console.error(err);
+     
     } finally {
       dispatch(logout());
       navigate("/signin", { replace: true });
     }
   };
-
   function timeAgo(dateString) {
     if (!dateString) return "just now";
     const date = new Date(dateString);
     const now = new Date();
     const secondsAgo = Math.floor((now - date) / 1000);
-
     if (isNaN(secondsAgo)) return "invalid date";
     if (secondsAgo < 10) return "just now";
-
     const intervals = [
       { label: "year", seconds: 31536000 },
       { label: "month", seconds: 2592000 },
@@ -139,17 +156,14 @@ export default function Settings() {
       { label: "minute", seconds: 60 },
       { label: "second", seconds: 1 },
     ];
-
     for (const interval of intervals) {
       const count = Math.floor(secondsAgo / interval.seconds);
       if (count >= 1) {
         return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
       }
     }
-
     return "just now";
   }
-
   const handleOpenSessionModal = async () => {
     setShowSessionsModal(true);
     SetIsLoading(true);
@@ -157,13 +171,12 @@ export default function Settings() {
       const response = await getAllActiveSession();
       setSessions(response.data || []);
     } catch (err) {
-      console.error(err);
+      
       triggerError("Could not load active sessions.");
     } finally {
       SetIsLoading(false);
     }
   };
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("linked") === "true") {
@@ -184,7 +197,6 @@ export default function Settings() {
       navigate(location.pathname, { replace: true });
     }
   }, [location, navigate]);
-
   return (
     <div className="relative min-h-screen w-full bg-[#050507] text-gray-300 pt-36 pb-32 overflow-x-hidden">
       <Grid />
@@ -196,8 +208,7 @@ export default function Settings() {
           <ArrowLeft className="w-3.5 h-3.5 transform group-hover:-translate-x-1 transition-transform" />
           <span>Back</span>
         </Link>
-
-        {/* Page Header */}
+        {}
         <div className="border-b border-white/[0.04] pb-4">
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Account Settings
@@ -207,8 +218,7 @@ export default function Settings() {
             sessions.
           </p>
         </div>
-
-        {/* Banners */}
+        {}
         <AnimatePresence>
           {success && (
             <motion.div
@@ -249,8 +259,7 @@ export default function Settings() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Section 1: General Options */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -300,8 +309,7 @@ export default function Settings() {
             </div>
           </div>
         </motion.div>
-
-        {/* Section 2: OAuth Accounts */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -312,7 +320,7 @@ export default function Settings() {
             Connected Accounts (OAuth)
           </h2>
           <div className="space-y-3">
-            {/* Google */}
+            {}
             <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="flex items-center space-x-3.5">
                 <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white text-xs">
@@ -336,7 +344,7 @@ export default function Settings() {
               </div>
               {provider.includes("GOOGLE") ? (
                 <button
-                  onClick={() => setUnlinkTarget("google")}
+                  onClick={() => setUnlinkTarget("GOOGLE")}
                   className="px-3 py-1.5 rounded-lg text-xs font-mono bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-all cursor-pointer flex items-center space-x-1.5"
                 >
                   <Link2Off className="w-3.5 h-3.5" />
@@ -351,8 +359,7 @@ export default function Settings() {
                 </button>
               )}
             </div>
-
-            {/* GitHub */}
+            {}
             <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="flex items-center space-x-3.5">
                 <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white text-xs">
@@ -376,7 +383,7 @@ export default function Settings() {
               </div>
               {provider.includes("GITHUB") ? (
                 <button
-                  onClick={() => setUnlinkTarget("github")}
+                  onClick={() => setUnlinkTarget("GITHUB")}
                   className="px-3 py-1.5 rounded-lg text-xs font-mono bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-all cursor-pointer flex items-center space-x-1.5"
                 >
                   <Link2Off className="w-3.5 h-3.5" />
@@ -393,8 +400,7 @@ export default function Settings() {
             </div>
           </div>
         </motion.div>
-
-        {/* Section 3: Active Sessions */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -429,8 +435,7 @@ export default function Settings() {
             <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
           </div>
         </motion.div>
-
-        {/* Section 4: Danger Zone */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -466,8 +471,7 @@ export default function Settings() {
           </div>
         </motion.div>
       </div>
-
-      {/* Modal 1: Active Sessions List */}
+      {}
       <AnimatePresence>
         {showSessionsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -500,8 +504,7 @@ export default function Settings() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Sessions List */}
+              {}
               <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, index) => (
@@ -540,7 +543,6 @@ export default function Settings() {
                   sessions.map((sess) => {
                     const currentId = sess.sessionId || sess.id;
                     const isDeletingThis = deletingSessionId === currentId;
-
                     return (
                       <div
                         key={currentId}
@@ -595,7 +597,6 @@ export default function Settings() {
                             </div>
                           </div>
                         </div>
-
                         {!sess.current && (
                           <button
                             disabled={isDeletingThis}
@@ -615,8 +616,7 @@ export default function Settings() {
                   })
                 )}
               </div>
-
-              {/* Modal Footer */}
+              {}
               <div className="pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button
                   disabled={sessions.filter((s) => !s.current).length === 0}
@@ -636,8 +636,7 @@ export default function Settings() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Modal 2: Confirm Terminate All Sessions */}
+      {}
       <AnimatePresence>
         {showConfirmLogoutAll && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -689,8 +688,7 @@ export default function Settings() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Modal 3: Unlink OAuth Provider */}
+      {}
       <AnimatePresence>
         {unlinkTarget && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -733,7 +731,7 @@ export default function Settings() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setUnlinkTarget(null)}
+                  onClick={handleUnlinkTargetAccount}
                   className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold text-xs rounded-xl transition-all cursor-pointer"
                 >
                   Unlink Account
@@ -743,8 +741,7 @@ export default function Settings() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Modal 4: Delete Account Confirmation */}
+      {}
       <AnimatePresence>
         {showDeleteModal && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -810,7 +807,6 @@ export default function Settings() {
           </div>
         )}
       </AnimatePresence>
-
       <FloatingNav />
     </div>
   );

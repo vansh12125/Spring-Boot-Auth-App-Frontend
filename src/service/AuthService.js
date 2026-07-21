@@ -1,4 +1,4 @@
-import { apiClient ,baseURL} from "@/config";
+import { apiClient, baseURL } from "@/config";
 
 const RegisterUserByUsername = async (userData) => {
   return await apiClient.post(`/auth/register`, userData);
@@ -44,24 +44,42 @@ const ResendOtp = async (data) => {
 };
 
 const LinkGoogleAccount = () => {
-    window.location.href = `${baseURL}/auth/link/google`;
+  window.location.href = `${baseURL}/auth/link/google`;
 };
 
- const LinkGithubAccount = async () => {
+const LinkGithubAccount = async () => {
   window.location.href = `${baseURL}/auth/link/github`;
 };
 
-const getAllActiveSession=async()=>{
-  return await apiClient.get(`/auth/user/sessions`)
-}
+const UnLinkAccount = async (provider) => {
+  return await apiClient.delete("/auth/unlink", {
+    data: provider,
+  });
+};
 
-const logoutParticularSession=async(sessionId)=>{
+const getAllActiveSession = async () => {
+  return await apiClient.get(`/auth/user/sessions`);
+};
+
+const logoutParticularSession = async (sessionId) => {
   return await apiClient.delete(`/auth/user/sessions/${sessionId}`);
-}
+};
 
-const deleteUser=async()=>{
+const deleteUser = async () => {
   return await apiClient.delete(`/auth/user/delete`);
-}
+};
+
+const sendResetPasswordOtp = async (data) => {
+  return await apiClient.post(`/auth/send-otp/reset-password`, data);
+};
+
+const reSendResetPasswordOtp = async (data) => {
+  return await apiClient.post(`/auth/resend-otp/reset-password`, data);
+};
+
+const verifyResetPasswordOtp = async (data) => {
+  return await apiClient.post(`/auth/verify-otp/reset-password`, data);
+};
 
 export {
   RegisterUserByUsername,
@@ -80,4 +98,8 @@ export {
   getAllActiveSession,
   logoutParticularSession,
   deleteUser,
+  sendResetPasswordOtp,
+  reSendResetPasswordOtp,
+  verifyResetPasswordOtp,
+  UnLinkAccount,
 };

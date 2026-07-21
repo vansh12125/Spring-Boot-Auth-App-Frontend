@@ -4,12 +4,10 @@ import { Settings, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, usePosts } from "@/hooks";
 import { Avatar, ShareBtn } from "@/components/ui";
-
 export default function ProfileHeader() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { posts } = usePosts();
-
   return (
     <>
       <motion.div
@@ -18,7 +16,8 @@ export default function ProfileHeader() {
         transition={{ duration: 0.6 }}
         className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl"
       >
-        {/* User Information Block */}
+        {}
+        
         <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 min-w-0 flex-1">
           <Avatar className="w-16 h-16 text-xl shrink-0" rounded="rounded-xl" />
           <div className="min-w-0 flex-1">
@@ -53,8 +52,7 @@ export default function ProfileHeader() {
             )}
           </div>
         </div>
-
-        {/* Action Controls: Share & Settings */}
+        {}
         <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto shrink-0">
           <ShareBtn
             text={`${window.location.origin}/u/${user?.username}`}

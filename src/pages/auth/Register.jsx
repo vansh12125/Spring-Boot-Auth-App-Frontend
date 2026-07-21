@@ -12,6 +12,8 @@ import {
   CircleX,
   SaveCheck,
   ShieldCheck,
+  Eye,
+  EyeOff,
   Loader2,
   RotateCcw,
 } from "lucide-react";
@@ -24,6 +26,7 @@ export default function Register() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
   const [otpMessage, setOtpMessage] = useState("");
@@ -83,10 +86,14 @@ export default function Register() {
     setIsSendingOtp(true);
     setOtpMessage("");
     try {
-      await SendOtpToEmail(data);
+      const response = await SendOtpToEmail(data);
+      console.log(response);
+      
       setIsOtpSent(true);
       setOtpMessage("OTP sent to email successfully. Check your inbox!");
     } catch (error) {
+      console.log(error);
+      
       const message = error.response?.data?.message || "Failed to send OTP.";
 
       const fieldErrors = {};
@@ -143,13 +150,12 @@ export default function Register() {
 
       try {
         const response = await RegisterUserByUsername(data);
-        
+
         setSuccess(true);
         setTimeout(() => {
           navigate("/signin");
         }, 1500);
       } catch (error) {
-        
         setErrors({
           response: error.response?.data?.message || "Something went wrong",
         });
@@ -260,17 +266,28 @@ export default function Register() {
                 >
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="register-password"
-                  disabled={isOtpSent || isPublishing}
-                  className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="register-password"
+                    disabled={isOtpSent || isPublishing}
+                    className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+
                 {errors.password && (
                   <p className="text-red-500 text-[11px] font-mono mt-1">
                     {errors.password}
