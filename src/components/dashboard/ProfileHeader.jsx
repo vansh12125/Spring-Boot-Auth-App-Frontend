@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Settings, FileText } from "lucide-react";
+import { Settings, FileText, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, usePosts } from "@/hooks";
 import { Avatar, ShareBtn } from "@/components/ui";
@@ -17,7 +17,7 @@ export default function ProfileHeader() {
         className="w-full backdrop-blur-2xl bg-black/40 border border-white/[0.06] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl"
       >
         {}
-        
+
         <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 min-w-0 flex-1">
           <Avatar className="w-16 h-16 text-xl shrink-0" rounded="rounded-xl" />
           <div className="min-w-0 flex-1">
@@ -30,9 +30,20 @@ export default function ProfileHeader() {
                 ONLINE
               </span>
             </div>
-            <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">
+            <p className="text-xs text-gray-400 font-mono mt-0.5 truncate flex gap-4 items-center">
               u/{user?.username}
+              <span>
+                •{" "}
+                <span>
+                  Joined{" "}
+                  {new Date(user?.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              </span>
             </p>
+
             <button
               onClick={() => navigate("/my-posts")}
               className="inline-flex items-center space-x-1.5 mt-2 px-2.5 py-1 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 rounded-md text-[11px] font-mono text-gray-400 hover:text-white transition-all cursor-pointer group"

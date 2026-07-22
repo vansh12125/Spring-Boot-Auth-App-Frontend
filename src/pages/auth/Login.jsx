@@ -17,7 +17,6 @@ import {
   LoginUserByGithub,
   LoginUserByUsername,
   sendResetPasswordOtp,
-  reSendResetPasswordOtp,
   verifyResetPasswordOtp,
 } from "@/service/AuthService";
 export default function Login() {
@@ -211,12 +210,13 @@ export default function Login() {
     setSuccess(false);
     setIsLoading(true);
     try {
-      const response = await reSendResetPasswordOtp({
+      const response = await sendResetPasswordOtp({
         identifier: username.toLowerCase().trim(),
       });
      
       setSuccess({ response: "A new OTP has been sent." });
     } catch (error) {
+      
       setErrors({
         response: error.response?.data?.message || "Failed to resend OTP.",
       });
@@ -411,7 +411,7 @@ export default function Login() {
                       htmlFor="reset-identity"
                       className="block text-[9px] font-mono uppercase tracking-wider text-gray-400 mb-1"
                     >
-                      Username
+                      Username/Email
                     </label>
                     <input
                       type="text"

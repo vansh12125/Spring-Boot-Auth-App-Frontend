@@ -1,4 +1,4 @@
-import { ProfileDashboard, EditProfile,CreatePost,Feeds ,MyPosts,EditPost,UserProfile,PostPage,Settings} from "@/pages/secure";
+import { ProfileDashboard, EditProfile,CreatePost,Feeds ,MyPosts,EditPost,UserProfile,PostPage,Settings,ChangePassword} from "@/pages/secure";
 
 export const securedRoutes = [
   {
@@ -8,6 +8,10 @@ export const securedRoutes = [
   {
     path: "edit-profile",
     element: <EditProfile />,
+  },
+  {
+    path: "change-password",
+    element: <ChangePassword />,
   },
   {
     path: "create-post",

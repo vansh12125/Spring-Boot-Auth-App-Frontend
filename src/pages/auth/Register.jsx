@@ -85,19 +85,14 @@ export default function Register() {
   const triggerOtpSendAPI = async (data) => {
     setIsSendingOtp(true);
     setOtpMessage("");
+    setErrors({});
     try {
       const response = await SendOtpToEmail(data);
-      console.log(response);
-      
       setIsOtpSent(true);
       setOtpMessage("OTP sent to email successfully. Check your inbox!");
     } catch (error) {
-      console.log(error);
-      
       const message = error.response?.data?.message || "Failed to send OTP.";
-
       const fieldErrors = {};
-
       if (message.toLowerCase().includes("username")) {
         fieldErrors.username = message;
       } else if (message.toLowerCase().includes("email")) {
@@ -105,13 +100,16 @@ export default function Register() {
       } else {
         fieldErrors.response = message;
       }
-
       setErrors(fieldErrors);
     } finally {
       setIsSendingOtp(false);
     }
   };
-  const handleResendOtp = async () => {
+  const handleResendOtp = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setOtp("");
     await triggerOtpSendAPI({
       email: email.trim().toLowerCase(),
@@ -147,10 +145,8 @@ export default function Register() {
         email: email.trim().toLowerCase(),
         otp: otp.trim(),
       };
-
       try {
         const response = await RegisterUserByUsername(data);
-
         setSuccess(true);
         setTimeout(() => {
           navigate("/signin");
@@ -271,23 +267,24 @@ export default function Register() {
                     type={showPassword ? "text" : "password"}
                     id="register-password"
                     disabled={isOtpSent || isPublishing}
-                    className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
+                    className="w-full bg-black/40 border border-white/5 rounded-lg pl-3.5 pr-10 py-2 text-xs text-white focus:outline-none focus:border-white/20 transition-colors font-mono disabled:opacity-50"
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
                   />
-
                   <button
                     type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowPassword((prev) => !prev);
+                    }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
-
                 {errors.password && (
                   <p className="text-red-500 text-[11px] font-mono mt-1">
                     {errors.password}
@@ -337,14 +334,14 @@ export default function Register() {
                       inputMode="numeric"
                       maxLength={6}
                       disabled={isPublishing}
-                      className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white disabled:opacity-50 outline-none"
+                      className="w-full bg-black/40 border border-white/5 rounded-lg px-3.5 py-2 text-xs text-white disabled:opacity-50 focus:outline-none focus:border-white/20 transition-colors font-mono tracking-widest"
                       placeholder="Enter 6 digit OTP"
                       value={otp}
                       onChange={(e) => {
                         setOtp(e.target.value.replace(/\D/g, ""));
                       }}
                     />
-                    <div className="flex justify-between items-center pt-0.5 px-0.5">
+                    <div className="flex justify-between items-center pt-1 px-0.5 min-h-[22px]">
                       <div className="flex-1">
                         {errors.otp && (
                           <p className="text-red-500 text-[11px] font-mono">
@@ -356,14 +353,16 @@ export default function Register() {
                         type="button"
                         disabled={isSendingOtp || isPublishing}
                         onClick={handleResendOtp}
-                        className="text-[10px] text-gray-400 hover:text-white transition-colors font-mono flex items-center gap-1 disabled:opacity-40 ml-auto bg-transparent border-none outline-none cursor-pointer"
+                        className="text-[10px] text-gray-400 hover:text-white transition-colors font-mono flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ml-auto bg-transparent border-none outline-none cursor-pointer"
                       >
                         {isSendingOtp ? (
-                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                          <Loader2 className="w-3 h-3 animate-spin text-white" />
                         ) : (
-                          <RotateCcw className="w-2.5 h-2.5" />
+                          <RotateCcw className="w-3 h-3" />
                         )}
-                        <span>Resend OTP</span>
+                        <span>
+                          {isSendingOtp ? "Sending..." : "Resend OTP"}
+                        </span>
                       </button>
                     </div>
                   </motion.div>
@@ -414,6 +413,7 @@ export default function Register() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <button
+              type="button"
               className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
               onClick={LoginUserByGoogle}
             >
@@ -438,6 +438,7 @@ export default function Register() {
               <span>Google</span>
             </button>
             <button
+              type="button"
               className="flex items-center justify-center space-x-2 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-lg text-xs font-mono text-gray-300 transition-colors duration-200"
               onClick={LoginUserByGithub}
             >

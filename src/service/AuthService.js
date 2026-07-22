@@ -39,10 +39,6 @@ const VerifyOtpCode = async (data) => {
   return await apiClient.post("/auth/verify-otp", data);
 };
 
-const ResendOtp = async (data) => {
-  return await apiClient.post("/auth/resend-otp", data);
-};
-
 const LinkGoogleAccount = () => {
   window.location.href = `${baseURL}/auth/link/google`;
 };
@@ -73,12 +69,16 @@ const sendResetPasswordOtp = async (data) => {
   return await apiClient.post(`/auth/send-otp/reset-password`, data);
 };
 
-const reSendResetPasswordOtp = async (data) => {
-  return await apiClient.post(`/auth/resend-otp/reset-password`, data);
-};
-
 const verifyResetPasswordOtp = async (data) => {
   return await apiClient.post(`/auth/verify-otp/reset-password`, data);
+};
+
+const changePasswordRequest = async (data) => {
+  return await apiClient.patch(`/auth/change-password`, data);
+};
+
+const SetPassword = async (data) => {
+  return await apiClient.patch(`/auth/set-password`, data);
 };
 
 export {
@@ -91,7 +91,6 @@ export {
   UpdateProfile,
   SendOtpToEmail,
   VerifyOtpCode,
-  ResendOtp,
   LinkGoogleAccount,
   LinkGithubAccount,
   LogoutAllSession,
@@ -99,7 +98,8 @@ export {
   logoutParticularSession,
   deleteUser,
   sendResetPasswordOtp,
-  reSendResetPasswordOtp,
   verifyResetPasswordOtp,
   UnLinkAccount,
+  changePasswordRequest,
+  SetPassword,
 };

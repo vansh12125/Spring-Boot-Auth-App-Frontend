@@ -18,6 +18,10 @@ import {
   UserX,
   ArrowLeft,
   Loader2,
+  RotateCcwKey,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Grid } from "@/components/common";
 import {
@@ -29,6 +33,7 @@ import {
   logoutParticularSession,
   deleteUser,
   UnLinkAccount,
+  SetPassword,
 } from "@/service/AuthService";
 import { logout } from "@/redux/authSlice";
 import { useAuth } from "@/hooks";
@@ -42,6 +47,13 @@ export default function Settings() {
   const [provider, setProvider] = useState(
     user?.provider ? [...user.provider] : [],
   );
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const [passwordErrors, setPasswordErrors] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [showSessionsModal, setShowSessionsModal] = useState(false);
   const [showConfirmLogoutAll, setShowConfirmLogoutAll] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState(null);
@@ -50,16 +62,28 @@ export default function Settings() {
   const [isLoading, SetIsLoading] = useState(true);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
-
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const triggerSuccess = (msg) => {
+    setError("");
+    setSuccess(msg);
+    setTimeout(() => setSuccess(""), 4000);
+  };
+  const triggerError = (msg) => {
+    setSuccess("");
+    setError(msg);
+    setTimeout(() => setError(""), 4000);
+  };
   const handleUnlinkTargetAccount = async () => {
-    if (!unlinkTarget) {
-      return;
-    }
+    if (!unlinkTarget) return;
     try {
       const response = await UnLinkAccount({ provider: unlinkTarget });
       setProvider((prev) => prev.filter((item) => item !== unlinkTarget));
       setUnlinkTarget(null);
-
       setSuccess(
         response?.data ||
           `${unlinkTarget
@@ -68,7 +92,7 @@ export default function Settings() {
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ")} account unlinked successfully.`,
       );
-    } catch (error) {
+    } catch (err) {
       setUnlinkTarget(null);
       triggerError(
         err.response?.data?.message ||
@@ -80,16 +104,6 @@ export default function Settings() {
       );
     }
   };
-  const triggerSuccess = (msg) => {
-    setError("");
-    setSuccess(msg);
-    setTimeout(() => setSuccess(""), 4000);
-  };
-  const triggerError = (msg) => {
-    setSuccess("");
-    setError(msg);
-    setTimeout(() => setError(""), 4000);
-  };
   const handleLogoutSingleSession = async (sessionId) => {
     try {
       setDeletingSessionId(sessionId);
@@ -99,7 +113,6 @@ export default function Settings() {
       );
       triggerSuccess("Terminated target device session.");
     } catch (err) {
-     
       triggerError("Failed to terminate session. Please try again.");
     } finally {
       setDeletingSessionId(null);
@@ -123,7 +136,6 @@ export default function Settings() {
     try {
       const response = await deleteUser();
       dispatch(logout());
-     
       if (response.data.success) {
         navigate("/signin?success=deleted-successfully");
       }
@@ -131,11 +143,73 @@ export default function Settings() {
       triggerError(error?.response || "Some Error Occurred.");
     }
   };
+  const handleSetPasswordSubmit = async (e) => {
+    e.preventDefault();
+
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    const errors = {
+      newPassword: "",
+      confirmPassword: "",
+    };
+
+    if (!newPassword) {
+      errors.newPassword = "Password is required.";
+    } else if (/\s/.test(newPassword)) {
+      errors.newPassword = "Password cannot contain spaces.";
+    } else if (newPassword.length < 8) {
+      errors.newPassword = "Password must be at least 8 characters.";
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = "Confirm your password.";
+    } else if (newPassword !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match.";
+    }
+
+    setPasswordErrors(errors);
+
+    if (errors.newPassword || errors.confirmPassword) return;
+
+    setPasswordLoading(true);
+
+    try {
+      const response = await SetPassword({
+        currentPassword:newPassword,
+        newPassword: newPassword,
+      });
+      
+      setPasswordSuccess(
+        response?.data?.message || "Password set successfully!",
+      );
+
+      setProvider((prev) => [...prev, "USERNAME"]);
+
+      setTimeout(() => {
+        setShowSetPasswordModal(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        setPasswordSuccess("");
+        setPasswordErrors({
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }, 1500);
+    } catch (err) {
+      
+      setPasswordError(
+        err.response?.data?.message ||
+          "Failed to set password. Please try again.",
+      );
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
   const handleLogout = async () => {
     try {
       await LogoutUser();
     } catch (err) {
-     
     } finally {
       dispatch(logout());
       navigate("/signin", { replace: true });
@@ -171,7 +245,6 @@ export default function Settings() {
       const response = await getAllActiveSession();
       setSessions(response.data || []);
     } catch (err) {
-      
       triggerError("Could not load active sessions.");
     } finally {
       SetIsLoading(false);
@@ -208,7 +281,6 @@ export default function Settings() {
           <ArrowLeft className="w-3.5 h-3.5 transform group-hover:-translate-x-1 transition-transform" />
           <span>Back</span>
         </Link>
-        {}
         <div className="border-b border-white/[0.04] pb-4">
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Account Settings
@@ -269,6 +341,62 @@ export default function Settings() {
             General Options
           </h2>
           <div className="space-y-3">
+            {}
+            {provider.includes("USERNAME") && (
+              <div
+                onClick={() => navigate("/change-password")}
+                className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 group-hover:text-white transition-colors">
+                    <RotateCcwKey className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">
+                      Change Password
+                    </h3>
+                    <p className="text-xs text-gray-400 font-mono">
+                      Change your current password.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
+              </div>
+            )}
+            {}
+            {!provider.includes("USERNAME") && (
+              <div
+                onClick={() => {
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setShowNewPassword(false);
+                  setShowConfirmPassword(false);
+                  setShowSetPasswordModal(true);
+                }}
+                className="flex items-center justify-between p-4 rounded-xl bg-red-500/[0.04] hover:bg-red-500/10 border border-red-500/20 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-9 h-9 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 transition-colors shrink-0">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-sm font-semibold text-red-400 group-hover:text-red-300">
+                        Set Password
+                      </h3>
+                      <span className="px-1.5 py-0.5 text-[9px] font-mono rounded bg-red-500/20 text-red-400 font-semibold uppercase">
+                        Action Needed
+                      </span>
+                    </div>
+                    <p className="text-xs text-red-400/80 font-mono mt-0.5">
+                      You have not set your password yet.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-red-400/60 group-hover:text-red-400 transition-colors" />
+              </div>
+            )}
+            {}
             <div
               onClick={() => navigate("/edit-profile")}
               className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all cursor-pointer group"
@@ -288,6 +416,7 @@ export default function Settings() {
               </div>
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
             </div>
+            {}
             <div
               onClick={handleLogout}
               className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 transition-all cursor-pointer group"
@@ -320,7 +449,6 @@ export default function Settings() {
             Connected Accounts (OAuth)
           </h2>
           <div className="space-y-3">
-            {}
             <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="flex items-center space-x-3.5">
                 <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white text-xs">
@@ -359,7 +487,6 @@ export default function Settings() {
                 </button>
               )}
             </div>
-            {}
             <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5">
               <div className="flex items-center space-x-3.5">
                 <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white text-xs">
@@ -473,6 +600,196 @@ export default function Settings() {
       </div>
       {}
       <AnimatePresence>
+        {showSetPasswordModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !passwordLoading && setShowSetPasswordModal(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-xl"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-[#09090d] border border-white/10 rounded-2xl p-6 md:p-7 z-20 text-left space-y-5 shadow-2xl backdrop-blur-2xl"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white tracking-tight">
+                      Set Account Password
+                    </h3>
+                    <p className="text-xs text-gray-400 font-mono mt-0.5">
+                      Min 8 characters, no spaces allowed
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  disabled={passwordLoading}
+                  onClick={() => setShowSetPasswordModal(false)}
+                  className="p-1.5 text-gray-400 hover:text-white bg-white/5 border border-white/10 rounded-lg cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {passwordSuccess && (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs font-mono text-emerald-400">
+                  {passwordSuccess}
+                </div>
+              )}
+
+              {passwordError && (
+                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs font-mono text-red-400">
+                  {passwordError}
+                </div>
+              )}
+              <form onSubmit={handleSetPasswordSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  name="username"
+                  value={"user"}
+                  readOnly
+                  autoComplete="username"
+                  className="hidden"
+                />
+                {}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      required
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+
+                        setPasswordErrors((prev) => ({
+                          ...prev,
+                          newPassword: "",
+                        }));
+
+                        setPasswordError("");
+                      }}
+                      placeholder="Enter new password (min. 8 chars)"
+                      className="w-full px-3.5 py-2.5 pr-10 bg-black/60 border border-white/10 rounded-xl text-xs font-mono text-white placeholder-gray-600 focus:outline-none focus:border-white/30 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer p-0.5"
+                      title={
+                        showNewPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {passwordErrors.newPassword && (
+                  <p className="mt-1 text-[11px] text-red-400 font-mono">
+                    {passwordErrors.newPassword}
+                  </p>
+                )}
+                {}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+
+                        setPasswordErrors((prev) => ({
+                          ...prev,
+                          confirmPassword: "",
+                        }));
+
+                        setPasswordError("");
+                      }}
+                      placeholder="Confirm new password"
+                      className="w-full px-3.5 py-2.5 pr-10 bg-black/60 border border-white/10 rounded-xl text-xs font-mono text-white placeholder-gray-600 focus:outline-none focus:border-white/30 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer p-0.5"
+                      title={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {passwordErrors.confirmPassword && (
+                  <p className="mt-1 text-[11px] text-red-400 font-mono">
+                    {passwordErrors.confirmPassword}
+                  </p>
+                )}
+                <div className="flex items-center justify-end space-x-3 pt-3">
+                  <button
+                    type="button"
+                    disabled={passwordLoading}
+                    onClick={() => {
+                      setPasswordSuccess("");
+                      setPasswordError("");
+                      setPasswordErrors({
+                        newPassword: "",
+                        confirmPassword: "",
+                      });
+                      setShowSetPasswordModal(false);
+                    }}
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-mono text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      passwordLoading || !newPassword || !confirmPassword
+                    }
+                    className="px-5 py-2 bg-white text-black hover:bg-gray-200 font-semibold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {passwordLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>Set Password</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {}
+      <AnimatePresence>
         {showSessionsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
@@ -504,7 +821,6 @@ export default function Settings() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              {}
               <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, index) => (
@@ -616,7 +932,6 @@ export default function Settings() {
                   })
                 )}
               </div>
-              {}
               <div className="pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button
                   disabled={sessions.filter((s) => !s.current).length === 0}
@@ -711,7 +1026,7 @@ export default function Settings() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white">
-                    Unlink {unlinkTarget === "google" ? "Google" : "GitHub"}{" "}
+                    Unlink {unlinkTarget === "GOOGLE" ? "Google" : "GitHub"}{" "}
                     Account?
                   </h3>
                   <p className="text-xs text-gray-400 font-mono mt-0.5">

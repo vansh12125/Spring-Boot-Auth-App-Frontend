@@ -7,3 +7,4 @@ export { default as EditPost } from "./EditPost";
 export {default as UserProfile} from "./UserProfile"
 export {default as PostPage} from "./PostPage"
 export {default as Settings} from "./Settings"
+export {default as ChangePassword} from "./ChangePassword"
