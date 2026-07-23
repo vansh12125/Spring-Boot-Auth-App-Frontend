@@ -41,7 +41,13 @@ export default function Login() {
   useEffect(() => {
     const error = searchParams.get("error");
     const url_success = searchParams.get("success");
-    if (error != null) {
+    const retryAfter = searchParams.get("retryAfter");
+
+    if (error === "too_many_requests") {
+      setErrors({
+        response: `Too many requests. Please try again in ${retryAfter} seconds.`,
+      });
+    } else if (error != null) {
       setErrors({
         response:
           "This email is already registered. Please sign in with your password first.",
@@ -53,7 +59,6 @@ export default function Login() {
     }
   }, [searchParams]);
   useEffect(() => {
-    setErrors({});
     setSuccess(false);
     if (hash === "reset") {
       setShowResetPassword(true);
@@ -188,12 +193,11 @@ export default function Login() {
     try {
       const response = await sendResetPasswordOtp({
         identifier: username.toLowerCase().trim(),
-      });;
+      });
 
       setSuccess({ response: "OTP sent successfully to your email." });
       setResetStep(2);
     } catch (error) {
-
       setErrors({
         response: error.response?.data?.message || "Failed to send OTP.",
       });
@@ -213,10 +217,9 @@ export default function Login() {
       const response = await sendResetPasswordOtp({
         identifier: username.toLowerCase().trim(),
       });
-     
+
       setSuccess({ response: "A new OTP has been sent." });
     } catch (error) {
-      
       setErrors({
         response: error.response?.data?.message || "Failed to resend OTP.",
       });
@@ -241,7 +244,7 @@ export default function Login() {
         newPassword: newPassword,
       };
       const response = await verifyResetPasswordOtp(payload);
-      
+
       setSuccess({ response: "Password reset successful! Redirecting..." });
       setTimeout(() => {
         clearFields();
@@ -249,7 +252,6 @@ export default function Login() {
         window.location.hash = "login";
       }, 1500);
     } catch (error) {
-     
       setErrors({
         response:
           error.response?.data?.message ||
@@ -520,7 +522,7 @@ export default function Login() {
                         required
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                         autoComplete="current-password"
+                        autoComplete="current-password"
                       />
                       <button
                         type="button"
@@ -557,7 +559,7 @@ export default function Login() {
                         placeholder="••••••••••••"
                         required
                         value={confirmPassword}
-                         autoComplete="current-password"
+                        autoComplete="current-password"
                         onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                       <button
