@@ -88,9 +88,16 @@ export default function Register() {
     setErrors({});
     try {
       const response = await SendOtpToEmail(data);
+
       setIsOtpSent(true);
       setOtpMessage("OTP sent to email successfully. Check your inbox!");
+      if (response?.data?.status === 200) {
+        setIsOtpSent(false);
+        const message = "Failed to send OTP.";
+        setErrors(message);
+      }
     } catch (error) {
+      setIsOtpSent(false);
       const message = error.response?.data?.message || "Failed to send OTP.";
       const fieldErrors = {};
       if (message.toLowerCase().includes("username")) {
