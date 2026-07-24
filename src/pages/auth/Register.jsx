@@ -88,7 +88,8 @@ export default function Register() {
     setErrors({});
     try {
       const response = await SendOtpToEmail(data);
-
+      console.log(response);
+      
       setIsOtpSent(true);
       setOtpMessage("OTP sent to email successfully. Check your inbox!");
       if (response?.data?.status === 200) {
@@ -97,6 +98,8 @@ export default function Register() {
         setErrors(message);
       }
     } catch (error) {
+      console.log(error.response);
+      
       setIsOtpSent(false);
       const message = error.response?.data?.message || "Failed to send OTP.";
       const fieldErrors = {};
