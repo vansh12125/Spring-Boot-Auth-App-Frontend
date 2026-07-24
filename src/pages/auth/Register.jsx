@@ -98,7 +98,7 @@ export default function Register() {
         setErrors(message);
       }
     } catch (error) {
-      console.log(error.response);
+      console.log(error);
       
       setIsOtpSent(false);
       const message = error.response?.data?.message || "Failed to send OTP.";
